@@ -1,0 +1,6 @@
+[ldap]
+server = ldap://localhost/
+basedn = { esmith::util::ldapBase ($DomainName); }
+binddn = cn=Manager,{ esmith::util::ldapBase ($DomainName); }
+password = { esmith::util::LdapPassword (); }
+bindtype = simple

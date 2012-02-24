@@ -1,0 +1,27 @@
+#!/usr/bin/perl -w
+
+use esmith::Build::CreateLinks  qw(:all);
+
+#-------------------------------------------
+# Configure the system to rely on slapd 
+# for account and password management
+#-------------------------------------------
+
+foreach(qw(
+     /etc/sysconfig/ldap
+     /etc/openldap/ldap.conf
+     /etc/libuser.conf
+     /etc/openldap/slapd.conf
+     /etc/openldap/slapd.pem
+     /etc/pam_ldap.conf
+     /etc/pam_ldap.secret
+     /etc/nslcd.conf
+)) {
+    templates2events($_ , qw(
+        console-save
+        bootstrap-console-save
+        post-upgrade
+        nethserver-base-update
+    ));
+}
+

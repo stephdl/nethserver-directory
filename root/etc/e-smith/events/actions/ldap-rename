@@ -1,0 +1,8 @@
+#!/bin/bash
+# This script rename a ldap tree from an old domain (dc) to a new one.
+# The new domain name must be in the configuration database
+#      
+
+#
+# TODO
+#
