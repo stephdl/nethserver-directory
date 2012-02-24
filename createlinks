@@ -7,21 +7,22 @@ use esmith::Build::CreateLinks  qw(:all);
 # for account and password management
 #-------------------------------------------
 
-foreach(qw(
-     /etc/sysconfig/ldap
-     /etc/openldap/ldap.conf
-     /etc/libuser.conf
-     /etc/openldap/slapd.conf
-     /etc/openldap/slapd.pem
-     /etc/pam_ldap.conf
-     /etc/pam_ldap.secret
-     /etc/nslcd.conf
-)) {
-    templates2events($_ , qw(
-        console-save
-        bootstrap-console-save
-        post-upgrade
-        nethserver-base-update
-    ));
-}
+templates2events($_ , qw(
+    console-save
+    bootstrap-console-save
+    post-upgrade
+    nethserver-base-update
+)) foreach(qw(
+    /etc/sysconfig/ldap
+    /etc/openldap/ldap.conf
+    /etc/libuser.conf
+    /etc/openldap/slapd.conf
+    /etc/openldap/slapd.pem
+    /etc/pam_ldap.conf
+    /etc/pam_ldap.secret
+    /etc/nslcd.conf
+    /etc/pam.d/system-auth-nh
+    /etc/pam.d/nethserver-directory
+));
+
 
