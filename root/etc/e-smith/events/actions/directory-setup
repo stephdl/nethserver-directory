@@ -1,0 +1,22 @@
+#!/bin/bash
+
+SETUPFILE="/etc/openldap/setup.ldif"
+
+#
+# Ensure slapd is running
+#
+if ! service slapd status; then
+   service slapd start
+   sleep 1;
+fi
+
+#
+# Merge the configuration into the running instance:
+#
+if [ -r "$SETUPFILE" ]; then
+	cat $SETUPFILE | /sbin/e-smith/ldapmerge
+else
+	echo "$0: Setup file $SETUPFILE is missing";
+	exit 1;
+fi
+
