@@ -1,0 +1,20 @@
+{
+        my $LDAPSUFFIX = 'dc=directory,dc=nh';
+        my $OLSUFFIX = esmith::util::ldapBase ($DomainName);
+        $OUT .= <<TEMPLATE;
+# 30relay fragment
+
+dn: olcDatabase=relay,cn=config
+objectClass: olcDatabaseConfig
+objectClass: olcRelayConfig
+objectClass: olcConfig
+olcDatabase: relay
+olcSuffix: $OLSUFFIX
+
+dn: olcOverlay=rwm,olcDatabase=relay,cn=config
+objectClass: olcOverlayConfig
+objectClass: olcRwmConfig
+olcOverlay: rwm
+olcRwmRewrite: rwm-suffixmassage "dc=directory,dc=nh"
+TEMPLATE
+}
