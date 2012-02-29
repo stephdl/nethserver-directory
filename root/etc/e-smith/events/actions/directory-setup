@@ -1,125 +1,129 @@
-#!/bin/bash
+#!/usr/bin/perl
 
-CertificateFile="/etc/openldap/slapd.pem"
-DomainName=`db configuration get DomainName`
-NslcdUid=`id -u nslcd`;        
-LdapInternalSuffix='dc=directory,dc=nh';
-LdapDomainSuffix=`perl -m'esmith::util' -e "print esmith::util::ldapBase('${DomainName}');"`
+use nethserver::Directory;
+use esmith::ConfigDB;
+use esmith::util;
+use Net::LDAP;
 
-#
-# Define some wrappers
-#
+my $configDb = esmith::ConfigDB->open_ro();
 
-function ldapsearch
-{
-    /usr/bin/ldapsearch -Q $@ 2>/dev/null
-}
+my $CertificateFile = "/etc/openldap/slapd.pem";
+my $DomainName = $configDb->get_value('DomainName') || 'locahost.localdomain';
+my $NslcdUid = getpwnam('nslcd');
+my $LdapInternalSuffix = 'dc=directory,dc=nh';
+my $LdapDomainSuffix = esmith::util::ldapBase($DomainName);
 
-function ldapmodify
-{
-    /usr/bin/ldapmodify -Q $@ >/dev/null 2>/dev/null
-}
-
-function ldapadd 
-{
-    /usr/bin/ldapadd -Q $@ >/dev/null 2>/dev/null
-}
-
-function printError
-{
-    echo "[ERROR]" $@ 1>&2
-}
+my $ldap = nethserver::Directory::bindLdap;
 
 #
 # Ensure slapd is running
 #
-if ! service slapd status >/dev/null; then
-   service slapd start
-   sleep 1;
-fi
+qx(service slapd status >/dev/null);
+if ( $? != 0 ) {
+    qx(service slapd start);
+    sleep 1;
+}
+
 
 #
 # Load the rwm overlay, if missing
 #
-RewriterModule=`rpm -ql openldap-servers | grep 'rwm\.la\$'`;
-if ! ldapsearch -b 'cn=config' -s one '(cn=module*)' 'olcModuleLoad' \
-    | egrep '^olcModuleLoad:.*rwm\.la$' >/dev/null; then
-    ldapadd <<EOF
-dn: cn=module,cn=config
-objectClass: olcModuleList
-cn: module
-olcModuleLoad: ${RewriterModule}
-EOF
-    [ $? -ne 0 ]  && printError "rwm module load error"
-fi
+my $RewriterModule = `rpm -ql openldap-servers | grep 'rwm\.la\$'`;
+chomp($RewriterModule);
+
+my $olcModuleSearch = $ldap->search(
+    base => 'cn=config',
+    filter => "(&(cn=module{0})(olcModuleLoad={0}$RewriterModule))",
+    attributes => ['olcModuleLoad']
+    );
+
+if ($olcModuleSearch->count() == 0) {
+    my $ldapAddResponse = $ldap->add(
+	'cn=module,cn=config',
+	attrs => [
+	    cn => 'module',
+	    olcModuleLoad => $RewriterModule	
+	]
+    );
+    if($ldapAddResponse->is_error) {
+	warn "`$RewriterModule` rwm module load error";
+    }
+}
+
 
 #
 # Replace some global settings
 #
-ldapmodify <<EOF
-dn: cn=config
-changetype: modify
-replace: olcPasswordCryptSaltFormat
-olcPasswordCryptSaltFormat: \$6\$%.86s
--
-replace: olcTLSCipherSuite
-olcTLSCipherSuite: HIGH:MEDIUM:+SSLv2
--
-replace: olcTLSCACertificateFile
-olcTLSCACertificateFile: ${CertificateFile}
--
-replace: olcTLSCertificateFile
-olcTLSCertificateFile: ${CertificateFile}
--
-replace: olcTLSCertificateKeyFile
-olcTLSCertificateKeyFile: ${CertificateFile}
--
-replace: olcTLSVerifyClient
-olcTLSVerifyClient: never
+my @configChangeList = (
+    ['cn=config',
+     replace => [
+	olcPasswordCryptSaltFormat => '$6$%.86s',
+	olcTLSCipherSuite => $CertificateFile,
+	olcTLSCACertificateFile => $CertificateFile,
+	olcTLSCertificateFile => $CertificateFile,
+	olcTLSCertificateKeyFile => $CertificateFile,
+	olcTLSVerifyClient => 'never'
+    ]],
+    ['olcDatabase={-1}frontend,cn=config',
+     replace => [olcPasswordHash => '{CRYPT}']],
+    ['olcDatabase={2}bdb,cn=config',
+     replace => [
+	 olcSuffix => $LdapInternalSuffix,
+	 olcAccess => [
+	     qq{to * by dn.regex="^gidNumber=[0-9]+\\+uidNumber=(0|$NslcdUid),cn=peercred,cn=external,cn=auth\$" manage by * break},
+	     q{to attrs=userPassword by anonymous auth by * break},
+	     q{to attrs=entry,@shadowAccount,@posixAccount,@account  by anonymous read}
+	 ]
+     ]]
+    );
 
-dn: olcDatabase={-1}frontend,cn=config
-changetype: modify
-replace: olcPasswordHash
-olcPasswordHash: {CRYPT}
-
-dn: olcDatabase={2}bdb,cn=config
-changetype: modify
-replace: olcSuffix
-olcSuffix: ${LdapInternalSuffix}
--
-replace: olcAccess
-olcAccess: to *
-  by dn.regex="^gidNumber=[0-9]+\\+uidNumber=(0|${NslcdUid}),cn=peercred,cn=external,cn=auth\$" manage
-  by * break
-olcAccess: to attrs=userPassword
-  by anonymous auth
-  by * break
-olcAccess: to attrs=entry,@shadowAccount,@posixAccount,@account
-  by anonymous read
-
-EOF
-
-[ $? -ne 0 ] && printError "global configuration setup error"
+foreach(@configChangeList) {
+    my $ldapConfigResponse = $ldap->modify(@{$_});
+    if($ldapConfigResponse->is_error) {
+	warn 'error modifying ' . @{$_} . ' ' . $ldapConfigResponse->error ;
+    }
+}
 
 #
 # Enable relay overlay 
 # see man slapd-relay, man slapo-rwm
 #
-if ! ldapsearch -b 'cn=config' -s one '(olcDatabase={0}relay)' 'olcSuffix' \
-    | egrep '^olcSuffix' >/dev/null; then
-    ldapadd <<EOF
-dn: olcDatabase={0}relay,cn=config
-objectClass: olcDatabaseConfig
-objectClass: olcRelayConfig
-objectClass: olcConfig
-olcDatabase: {0}relay
-olcSuffix: ${LdapDomainSuffix}
+my $olcRelaySearch = $ldap->search(
+    base => 'cn=config',
+    scope => 'one',
+    filter => '(olcDatabase={0}relay)',
+    attributes => ['olcSuffix']
+    );
 
-dn: olcOverlay=rwm,olcDatabase={0}relay,cn=config
-objectClass: olcOverlayConfig
-objectClass: olcRwmConfig
-olcOverlay: rwm
-olcRwmRewrite: rwm-suffixmassage "dc=directory,dc=nh"
-EOF
-    [ $? -ne 0 ] && printError 'Relay backend configuration error.'
-fi
+if($olcRelaySearch->count() == 0) {
+    my $ldapAddRelayResponse = $ldap->add(
+	'olcDatabase={0}relay,cn=config',
+	attrs => [
+	    objectClass => 'olcDatabaseConfig',
+	    objectClass => 'olcRelayConfig',
+	    objectClass => 'olcConfig',
+	    olcDatabase => '{0}relay',
+	    olcSuffix => $LdapDomainSuffix
+	]
+	);
+    if(not $ldapAddRelayResponse->is_error) {	
+	my $ldapAddOverlayResponse = $ldap->add(
+	    'olcOverlay=rwm,' . $ldapAddResponse->dn(),
+	    attrs => [
+		objectClass => 'olcOverlayConfig',
+		objectClass => 'olcRwmConfig',
+		olcOverlay => 'rwm',
+		olcRwmRewrite => 'rwm-suffixmassage "dc=directory,dc=nh"'
+		]
+	    );
+
+	if(not $ldapAddOverlayResponse->is_error) {
+	    warn 'Error adding rewrite module overlay: ' . $ldapAddOverlayReponse->error;
+	}
+
+    } else {
+	warn 'Error adding relay database: ' . $ldapAddRelayReponse->error;
+    }
+}
+
+$ldap->unbind;
