@@ -13,8 +13,6 @@ my $NslcdUid = getpwnam('nslcd');
 my $LdapInternalSuffix = 'dc=directory,dc=nh';
 my $LdapDomainSuffix = esmith::util::ldapBase($DomainName);
 
-my $ldap = NethServer::Directory::bindLdap;
-
 #
 # Ensure slapd is running
 #
@@ -24,6 +22,10 @@ if ( $? != 0 ) {
     sleep 1;
 }
 
+#
+# Connect to LDAP server
+#
+my $ldap = NethServer::Directory::bindLdap;
 
 #
 # Load the rwm overlay, if missing
