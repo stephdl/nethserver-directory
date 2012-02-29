@@ -1,0 +1,44 @@
+#!/usr/bin/perl
+
+use NethServer::Directory;
+use esmith::ConfigDB;
+
+my $directory = NethServer::Directory->new;
+my $configDb = esmith::ConfigDB->open_ro();
+my %ContactDefault = $configDb->get('ContactDefault')->props;
+my $internalSuffix = $directory->getInternalSuffix;
+
+my @entries = (
+    [ $internalSuffix,
+      merge => [
+	  objectClass => ['top', 'dcObject', 'organization'],
+	  dc => 'directory',
+	  o => $ContactDefault{Company},
+      ] ],    
+    [ "ou=People,$internalSuffix",
+      merge => [
+	  objectClass => ['top', 'organizationalUnit'],
+	  ou => 'People',
+      ] ],
+    [ "ou=Group,$internalSuffix",
+      merge => [
+	  objectClass => ['top', 'organizationalUnit'],
+	  ou => 'Group',
+      ] ],
+    [ "ou=Computers,$internalSuffix",
+      merge => [
+	  objectClass => ['top', 'organizationalUnit'],
+	  ou => 'Computers',
+      ] ],
+    );
+
+foreach(@entries) {
+    my $method = @{$_}[1];
+    my $message = $directory->$method(@{$_});
+    if($message->is_error) {
+	warn join(" ", $message->code, $message->error_name());
+    }
+}
+
+
+

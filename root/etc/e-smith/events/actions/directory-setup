@@ -1,17 +1,7 @@
 #!/usr/bin/perl
 
 use NethServer::Directory;
-use esmith::ConfigDB;
-use esmith::util;
 use Net::LDAP;
-
-my $configDb = esmith::ConfigDB->open_ro();
-
-my $CertificateFile = "/etc/openldap/slapd.pem";
-my $DomainName = $configDb->get_value('DomainName') || 'locahost.localdomain';
-my $NslcdUid = getpwnam('nslcd');
-my $LdapInternalSuffix = 'dc=directory,dc=nh';
-my $LdapDomainSuffix = esmith::util::ldapBase($DomainName);
 
 #
 # Ensure slapd is running
@@ -25,7 +15,11 @@ if ( $? != 0 ) {
 #
 # Connect to LDAP server
 #
-my $ldap = NethServer::Directory::bindLdap;
+my $ldap = NethServer::Directory->new;
+my $CertificateFile = "/etc/openldap/slapd.pem";
+my $NslcdUid = getpwnam('nslcd');
+my $LdapInternalSuffix = $ldap->getInternalSuffix(); 
+my $LdapDomainSuffix = $ldap->getDomainSuffix(); 
 
 #
 # Load the rwm overlay, if missing
