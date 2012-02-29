@@ -1,22 +1,125 @@
 #!/bin/bash
 
-SETUPFILE="/etc/openldap/setup.ldif"
+CertificateFile="/etc/openldap/slapd.pem"
+DomainName=`db configuration get DomainName`
+NslcdUid=`id -u nslcd`;        
+LdapInternalSuffix='dc=directory,dc=nh';
+LdapDomainSuffix=`perl -m'esmith::util' -e "print esmith::util::ldapBase('${DomainName}');"`
+
+#
+# Define some wrappers
+#
+
+function ldapsearch
+{
+    /usr/bin/ldapsearch -Q $@ 2>/dev/null
+}
+
+function ldapmodify
+{
+    /usr/bin/ldapmodify -Q $@ >/dev/null 2>/dev/null
+}
+
+function ldapadd 
+{
+    /usr/bin/ldapadd -Q $@ >/dev/null 2>/dev/null
+}
+
+function printError
+{
+    echo "[ERROR]" $@ 1>&2
+}
 
 #
 # Ensure slapd is running
 #
-if ! service slapd status; then
+if ! service slapd status >/dev/null; then
    service slapd start
    sleep 1;
 fi
 
 #
-# Merge the configuration into the running instance:
+# Load the rwm overlay, if missing
 #
-if [ -r "$SETUPFILE" ]; then
-	cat $SETUPFILE | /sbin/e-smith/ldapmerge
-else
-	echo "$0: Setup file $SETUPFILE is missing";
-	exit 1;
+RewriterModule=`rpm -ql openldap-servers | grep 'rwm\.la\$'`;
+if ! ldapsearch -b 'cn=config' -s one '(cn=module*)' 'olcModuleLoad' \
+    | egrep '^olcModuleLoad:.*rwm\.la$' >/dev/null; then
+    ldapadd <<EOF
+dn: cn=module,cn=config
+objectClass: olcModuleList
+cn: module
+olcModuleLoad: ${RewriterModule}
+EOF
+    [ $? -ne 0 ]  && printError "rwm module load error"
 fi
 
+#
+# Replace some global settings
+#
+ldapmodify <<EOF
+dn: cn=config
+changetype: modify
+replace: olcPasswordCryptSaltFormat
+olcPasswordCryptSaltFormat: \$6\$%.86s
+-
+replace: olcTLSCipherSuite
+olcTLSCipherSuite: HIGH:MEDIUM:+SSLv2
+-
+replace: olcTLSCACertificateFile
+olcTLSCACertificateFile: ${CertificateFile}
+-
+replace: olcTLSCertificateFile
+olcTLSCertificateFile: ${CertificateFile}
+-
+replace: olcTLSCertificateKeyFile
+olcTLSCertificateKeyFile: ${CertificateFile}
+-
+replace: olcTLSVerifyClient
+olcTLSVerifyClient: never
+
+dn: olcDatabase={-1}frontend,cn=config
+changetype: modify
+replace: olcPasswordHash
+olcPasswordHash: {CRYPT}
+
+dn: olcDatabase={2}bdb,cn=config
+changetype: modify
+replace: olcSuffix
+olcSuffix: ${LdapInternalSuffix}
+-
+replace: olcAccess
+olcAccess: to *
+  by dn.regex="^gidNumber=[0-9]+\\+uidNumber=(0|${NslcdUid}),cn=peercred,cn=external,cn=auth\$" manage
+  by * break
+olcAccess: to attrs=userPassword
+  by anonymous auth
+  by * break
+olcAccess: to attrs=entry,@shadowAccount,@posixAccount,@account
+  by anonymous read
+
+EOF
+
+[ $? -ne 0 ] && printError "global configuration setup error"
+
+#
+# Enable relay overlay 
+# see man slapd-relay, man slapo-rwm
+#
+if ! ldapsearch -b 'cn=config' -s one '(olcDatabase={0}relay)' 'olcSuffix' \
+    | egrep '^olcSuffix' >/dev/null; then
+    ldapadd <<EOF
+dn: olcDatabase={0}relay,cn=config
+objectClass: olcDatabaseConfig
+objectClass: olcRelayConfig
+objectClass: olcConfig
+olcDatabase: {0}relay
+olcSuffix: ${LdapDomainSuffix}
+
+dn: olcOverlay=rwm,olcDatabase={0}relay,cn=config
+objectClass: olcOverlayConfig
+objectClass: olcRwmConfig
+olcOverlay: rwm
+olcRwmRewrite: rwm-suffixmassage "dc=directory,dc=nh"
+EOF
+    [ $? -ne 0 ] && printError 'Relay backend configuration error.'
+fi
