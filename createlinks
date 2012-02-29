@@ -10,6 +10,7 @@ use esmith::Build::CreateLinks  qw(:all);
 my @events = qw(
     console-save
     bootstrap-console-save
+    directory-configure
 );
 
 templates2events($_ , @events) foreach(qw(
@@ -22,7 +23,6 @@ templates2events($_ , @events) foreach(qw(
     /etc/nslcd.conf
     /etc/pam.d/system-auth-nh
     /etc/pam.d/nethserver-directory
-    /etc/openldap/setup.ldif
 ));
 
 event_link('directory-setup', $_, '50') foreach(@events);
