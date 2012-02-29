@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-use nethserver::Directory;
+use NethServer::Directory;
 use esmith::ConfigDB;
 use esmith::util;
 use Net::LDAP;
@@ -13,7 +13,7 @@ my $NslcdUid = getpwnam('nslcd');
 my $LdapInternalSuffix = 'dc=directory,dc=nh';
 my $LdapDomainSuffix = esmith::util::ldapBase($DomainName);
 
-my $ldap = nethserver::Directory::bindLdap;
+my $ldap = NethServer::Directory::bindLdap;
 
 #
 # Ensure slapd is running
