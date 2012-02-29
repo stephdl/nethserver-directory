@@ -44,6 +44,7 @@ if ($olcModuleSearch->count() == 0) {
 	'cn=module,cn=config',
 	attrs => [
 	    cn => 'module',
+	    objectClass => 'olcModuleList',
 	    olcModuleLoad => $RewriterModule	
 	]
     );
@@ -94,38 +95,71 @@ my $olcRelaySearch = $ldap->search(
     base => 'cn=config',
     scope => 'one',
     filter => '(olcDatabase={0}relay)',
-    attributes => ['olcSuffix']
+    attributes => ['olcSuffix'],
+    sizelimit => 1
     );
 
 if($olcRelaySearch->count() == 0) {
     my $ldapAddRelayResponse = $ldap->add(
-	'olcDatabase={0}relay,cn=config',
+	'olcDatabase=relay,cn=config',
 	attrs => [
-	    objectClass => 'olcDatabaseConfig',
-	    objectClass => 'olcRelayConfig',
-	    objectClass => 'olcConfig',
-	    olcDatabase => '{0}relay',
+	    objectClass => ['olcDatabaseConfig', 'olcRelayConfig', 'olcConfig'],
+	    olcDatabase => 'relay',
 	    olcSuffix => $LdapDomainSuffix
 	]
 	);
-    if(not $ldapAddRelayResponse->is_error) {	
+    if($ldapAddRelayResponse->is_error) {	
+	warn 'Error adding relay database: ' . $ldapAddRelayResponse->error;
+    } else {
+	addOverlayRwm();
+    }
+} 
+
+sub addOverlayRwm
+{
+
+    my $olcRelaySearch = $ldap->search(
+	base => 'cn=config',
+	scope => 'one',
+	filter => '(olcDatabase={0}relay)',
+	attributes => ['olcSuffix'],
+	sizelimit => 1
+	);
+
+
+    if($olcRelaySearch->count() == 0) {
+	warn 'Cannot find the relay database';
+	return
+    }
+
+    #
+    # Search for existing rwm overlay configurations:
+    #
+    my $relayDnSuffix = $olcRelaySearch->entry(0)->dn();
+    my $olcOverlaySearch = $ldap->search(
+	base => $relayDnSuffix,
+	scope => 'one',
+	filter => 'objectClass=olcRwmConfig',
+	sizelimit => 1
+	);
+
+    if($olcOverlaySearch->count() == 0) {
+
 	my $ldapAddOverlayResponse = $ldap->add(
-	    'olcOverlay=rwm,' . $ldapAddResponse->dn(),
+	    'olcOverlay=rwm,' . $relayDnSuffix,
 	    attrs => [
-		objectClass => 'olcOverlayConfig',
-		objectClass => 'olcRwmConfig',
+		objectClass => ['olcOverlayConfig', 'olcRwmConfig'],
 		olcOverlay => 'rwm',
 		olcRwmRewrite => 'rwm-suffixmassage "dc=directory,dc=nh"'
 		]
 	    );
-
-	if(not $ldapAddOverlayResponse->is_error) {
-	    warn 'Error adding rewrite module overlay: ' . $ldapAddOverlayReponse->error;
+	if($ldapAddOverlayResponse->is_error) {
+	    warn "Error adding rewrite module overlay on `$relayDnSuffix`: " . 
+		$ldapAddOverlayResponse;
 	}
 
-    } else {
-	warn 'Error adding relay database: ' . $ldapAddRelayReponse->error;
     }
 }
+
 
 $ldap->unbind;
