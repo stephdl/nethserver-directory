@@ -26,3 +26,4 @@ templates2events($_ , @events) foreach(qw(
 ));
 
 event_link('directory-setup', $_, '50') foreach(@events);
+event_link('directory-posixaccount-provision', $_, '55') foreach(@events);
