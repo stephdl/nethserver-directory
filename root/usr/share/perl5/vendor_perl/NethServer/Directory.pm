@@ -17,7 +17,7 @@ sub new
 {
     my $class = shift;
     my $url = shift || 'ldapi://';
-    my $self = $class->SUPER::new($url, @_) or die("Can't connect $url");
+    my $self = $class->SUPER::new($url, @_);
 
     if($url eq 'ldapi://') {
 	$self->bind;
@@ -33,7 +33,7 @@ sub bind
 {
     my $self = shift;
     my $sasl = Authen::SASL->new(mechanism=>'EXTERNAL');
-    return $self->SUPER::bind(anonymous=>0, sasl => $sasl) or die ("Can't bind to " . $self->uri());
+    return $self->SUPER::bind(anonymous=>0, sasl => $sasl);
 }
 
 

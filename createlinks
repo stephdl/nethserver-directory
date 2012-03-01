@@ -14,16 +14,23 @@ my @events = qw(
 );
 
 templates2events($_ , @events) foreach(qw(
+    /etc/nsswitch.conf
     /etc/openldap/slapd.pem
     /etc/sysconfig/ldap
     /etc/openldap/ldap.conf
     /etc/libuser.conf
     /etc/pam_ldap.conf
-    /etc/pam_ldap.secret
     /etc/nslcd.conf
     /etc/pam.d/system-auth-nh
-    /etc/pam.d/nethserver-directory
 ));
 
 event_link('directory-setup', $_, '50') foreach(@events);
 event_link('directory-posixaccount-provision', $_, '55') foreach(@events);
+safe_symlink("restart", "root/etc/e-smith/events/$_/services2adjust/nslcd") foreach(@events);
+
+# Add configuration:nsswitch key migration to enable ldap in nsswitch
+# see /etc/e-smith/db/configuration/migrate/30directory-nsswitch
+# The migration must occur BEFORE template expansions
+event_link('initialize-default-databases', 'directory-configure', '00');
+
+

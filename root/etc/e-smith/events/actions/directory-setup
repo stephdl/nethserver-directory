@@ -13,6 +13,14 @@ if ( $? != 0 ) {
 }
 
 #
+# Enable nslcd at startup
+#
+qx(chkconfig nslcd on);
+if ( $? != 0 ) {
+    warn 'Error activating nslcd at reboot. Is nslcd available?';
+}
+
+#
 # Connect to LDAP server
 #
 my $ldap = NethServer::Directory->new;
