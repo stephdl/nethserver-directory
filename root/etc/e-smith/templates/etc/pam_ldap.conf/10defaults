@@ -1,7 +1,15 @@
-uri ldap://localhost/
+
+#
+# pam_ldap.conf -- see pam_ldap(5)
+#{
+    use NethServer::Directory;
+}
+uri ldapi://
 ssl no
-tls_cacertdir /etc/openldap/cacerts
-rootbinddn cn=Manager,{ esmith::util::ldapBase ($DomainName); }
+base { NethServer::Directory::getInternalSuffix }
+rootbinddn cn=pam,{ NethServer::Directory::getInternalSuffix }
 pam_password exop
-base { esmith::util::ldapBase ($DomainName); }
+
+
+
 

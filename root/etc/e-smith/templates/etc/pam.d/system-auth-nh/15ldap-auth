@@ -1,1 +1,1 @@
-auth		substack	nethserver-directory
+auth        sufficient    pam_ldap.so use_first_pass

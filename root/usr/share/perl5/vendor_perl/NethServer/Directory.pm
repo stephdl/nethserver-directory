@@ -5,7 +5,6 @@ use strict;
 use Net::LDAP;
 use Authen::SASL;
 use esmith::ConfigDB;
-use esmith::util;
 
 use Data::Dumper;
 
@@ -42,7 +41,8 @@ sub getDomainSuffix
 {
     my $self = shift;
     my $DomainName = $self->{ConfigDb}->get_value('DomainName');
-    return esmith::util::ldapBase($DomainName);
+    $DomainName =~ s/\./,dc=/g;
+    return "dc=" . $DomainName;
 }
 
 sub getInternalSuffix
@@ -75,6 +75,68 @@ sub merge
     }
 
     return $message;
+}
+
+sub getUserPassword
+{
+    my $self = shift;
+    my $user = shift;
+    my $crypt = shift;
+
+    my $cryptSaltFormat = $self->getCryptSaltFormat;   
+    my $file;
+
+    if($user eq 'pam') {
+	#
+	# pam_ldap read the "secret" file for rootbinddb password
+	# see pam_ldap(5) for details
+	#
+	$file = '/etc/pam_ldap.secret';
+    } else {
+	$file = '/etc/openldap/.' . $user . '.pw';
+    }
+
+    my $password;
+
+    if(not -e $file) {
+	my $umask = umask 0177;
+	`slappasswd -n -g > $file`;
+	umask $umask;
+    }
+
+    if($crypt) {
+	$password = `slappasswd -n -u -c '$cryptSaltFormat' -T $file`;
+	chomp($password);	
+    } else {
+	open(FH, $file);
+	$password = <FH>;
+	chomp($password);
+	close(FH);
+    }
+
+    return $password;
+}
+
+sub getCryptSaltFormat 
+{
+    my $self = shift;
+
+    my $default = '$6$%.86s';
+
+    my $searchResponse = $self->search(
+	base => 'cn=config',
+	filter => 'objectClass=*',
+	scope => 'base',
+	attributes => ['olcPasswordCryptSaltFormat'],
+	sizelimit => 1
+	);
+
+    if($searchResponse->is_error) {
+	warn 'Could not retrieve password salt format: ' . $searchResponse->error_name;
+	return $default;
+    }
+
+    return $searchResponse->entry(0)->get_value('olcPasswordCryptSaltFormat') || $default;
 }
 
 1;

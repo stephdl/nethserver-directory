@@ -1,6 +1,9 @@
+{
+use NethServer::Directory;
+}
 [ldap]
-server = ldap://localhost/
-basedn = { esmith::util::ldapBase ($DomainName); }
-binddn = cn=Manager,{ esmith::util::ldapBase ($DomainName); }
-password = { esmith::util::LdapPassword (); }
+server = ldap://127.0.0.1
+basedn = { NethServer::Directory::getInternalSuffix }
+binddn = cn=libuser,{ NethServer::Directory::getInternalSuffix }
+password = { my $directory = NethServer::Directory->new; $directory->getUserPassword('libuser') }
 bindtype = simple
