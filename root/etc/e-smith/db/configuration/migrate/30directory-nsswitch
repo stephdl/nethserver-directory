@@ -1,0 +1,26 @@
+{
+    # Add "ldap" to the following nsswitch.conf modules:
+    my @propList = qw(
+      passwd
+      shadow
+      group
+      netgroup
+      automount
+    );
+    
+    my $nsswitch = $DB->get('nsswitch') or return;
+
+    foreach(@propList) {
+	my $value = $nsswitch->prop($_);
+
+	if($value =~ /ldap/) {
+	    next;
+	} elsif ($value =~ /files/) {
+	    $value =~ s/files/files ldap/;
+	} else {
+	    $value .= ' ldap';
+	}
+	$nsswitch->set_prop($_, $value);
+    }
+	
+}
