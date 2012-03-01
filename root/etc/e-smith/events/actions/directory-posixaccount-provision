@@ -30,13 +30,30 @@ my @entries = (
 	  objectClass => ['top', 'organizationalUnit'],
 	  ou => 'Computers',
       ] ],
+
+    #
+    # authentication services accounts (replace with SASL whenever possible):
+    #
+
+    [ "cn=libuser,$internalSuffix",
+      merge => [
+	  objectClass => ['device', 'simpleSecurityObject'],
+	  cn => 'libuser',
+	  userPassword => $directory->getUserPassword('libuser', 1)
+      ] ],
+    [ "cn=pam,$internalSuffix",
+      merge => [
+	  objectClass => ['device', 'simpleSecurityObject'],
+	  cn => 'pam',
+	  userPassword => $directory->getUserPassword('pam', 1)
+      ] ],
     );
 
 foreach(@entries) {
     my $method = @{$_}[1];
     my $message = $directory->$method(@{$_});
     if($message->is_error) {
-	warn join(" ", $message->code, $message->error_name());
+	warn 'Error modifying `' . @{$_}[0] . '`: ' . join(" ", $message->code, $message->error_name());
     }
 }
 

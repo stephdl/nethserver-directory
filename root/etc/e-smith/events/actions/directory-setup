@@ -49,17 +49,17 @@ if ($olcModuleSearch->count() == 0) {
 
 
 #
-# Replace some global settings
+# Replace some global settings, access control setup:
 #
 my @configChangeList = (
     ['cn=config',
      replace => [
-	olcPasswordCryptSaltFormat => '$6$%.86s',
-	olcTLSCipherSuite => $CertificateFile,
-	olcTLSCACertificateFile => $CertificateFile,
-	olcTLSCertificateFile => $CertificateFile,
-	olcTLSCertificateKeyFile => $CertificateFile,
-	olcTLSVerifyClient => 'never'
+	 olcPasswordCryptSaltFormat => '$6$%.86s',
+	 olcTLSCipherSuite => 'HIGH:MEDIUM:+SSLv2',
+	 olcTLSCACertificateFile => $CertificateFile,
+	 olcTLSCertificateFile => $CertificateFile,
+	 olcTLSCertificateKeyFile => $CertificateFile,
+	 olcTLSVerifyClient => 'never',
     ]],
     ['olcDatabase={-1}frontend,cn=config',
      replace => [olcPasswordHash => '{CRYPT}']],
@@ -67,9 +67,17 @@ my @configChangeList = (
      replace => [
 	 olcSuffix => $LdapInternalSuffix,
 	 olcAccess => [
-	     qq{to * by dn.regex="^gidNumber=[0-9]+\\+uidNumber=(0|$NslcdUid),cn=peercred,cn=external,cn=auth\$" manage by * break},
-	     q{to attrs=userPassword by anonymous auth by * break},
-	     q{to attrs=entry,@shadowAccount,@posixAccount,@account  by anonymous read}
+	     qq{to attrs=userPassword 
+                  by anonymous auth
+                  by self write
+                  by dn.exact="cn=pam,$LdapInternalSuffix" peername.path="/var/run/ldapi" write
+                  by * break
+             },
+	     qq{to * 
+                  by dn.exact="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" manage
+                  by dn.exact="cn=libuser,$LdapInternalSuffix" peername.ip="127.0.0.1" write
+                  by users ssf=71 read
+             },
 	 ]
      ]]
     );
@@ -77,7 +85,7 @@ my @configChangeList = (
 foreach(@configChangeList) {
     my $ldapConfigResponse = $ldap->modify(@{$_});
     if($ldapConfigResponse->is_error) {
-	warn 'error modifying ' . @{$_} . ' ' . $ldapConfigResponse->error ;
+	warn 'error modifying `' . @{$_}[0] . '` ' . $ldapConfigResponse->error ;
     }
 }
 
