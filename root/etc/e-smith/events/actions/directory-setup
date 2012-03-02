@@ -4,20 +4,18 @@ use NethServer::Directory;
 use Net::LDAP;
 
 #
-# Ensure slapd is running
+# Ensure daemons are enabled and running
 #
-qx(service slapd status >/dev/null);
-if ( $? != 0 ) {
-    qx(service slapd start);
-    sleep 1;
-}
-
-#
-# Enable nslcd at startup
-#
-qx(chkconfig nslcd on);
-if ( $? != 0 ) {
-    warn 'Error activating nslcd at reboot. Is nslcd available?';
+foreach my $daemon (qx(slapd nslcd)) {
+    qx(chkconfig $daemon on);
+    if ( $? != 0 ) {
+	warn "Error activating daemon at reboot. Is $daemon available?";
+    }
+    qx(service $daemon status >/dev/null);
+    if ( $? != 0 ) {
+	qx(service $daemon start);
+	sleep 1;
+    }
 }
 
 #

@@ -8,9 +8,7 @@ use esmith::Build::CreateLinks  qw(:all);
 #-------------------------------------------
 
 my @events = qw(
-    console-save
     bootstrap-console-save
-    directory-configure
 );
 
 templates2events($_ , @events) foreach(qw(
@@ -28,9 +26,5 @@ event_link('directory-setup', $_, '50') foreach(@events);
 event_link('directory-posixaccount-provision', $_, '55') foreach(@events);
 safe_symlink("restart", "root/etc/e-smith/events/$_/services2adjust/nslcd") foreach(@events);
 
-# Add configuration:nsswitch key migration to enable ldap in nsswitch
-# see /etc/e-smith/db/configuration/migrate/30directory-nsswitch
-# The migration must occur BEFORE template expansions
-event_link('initialize-default-databases', 'directory-configure', '00');
 
 
