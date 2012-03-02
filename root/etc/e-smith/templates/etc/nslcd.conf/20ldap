@@ -1,8 +1,5 @@
 uri        ldapi://
-base       { use NethServer::Directory; NethServer::Directory::getInternalSuffix }
+base       { use NethServer::Directory; NethServer::Directory::getInternalSuffix() }
 use_sasl   yes
 sasl_mech  EXTERNAL
-
-
-
 

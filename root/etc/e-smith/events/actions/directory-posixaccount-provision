@@ -1,12 +1,13 @@
 #!/usr/bin/perl
 
 use NethServer::Directory;
+use NethServer::Directory::LDAP;
 use esmith::ConfigDB;
 
-my $directory = NethServer::Directory->new;
+my $ldap = NethServer::Directory::LDAP->new;
 my $configDb = esmith::ConfigDB->open_ro();
 my %ContactDefault = $configDb->get('ContactDefault')->props;
-my $internalSuffix = $directory->getInternalSuffix;
+my $internalSuffix = NethServer::Directory::getInternalSuffix();
 
 my @entries = (
     [ $internalSuffix,
@@ -39,19 +40,19 @@ my @entries = (
       merge => [
 	  objectClass => ['device', 'simpleSecurityObject'],
 	  cn => 'libuser',
-	  userPassword => $directory->getUserPassword('libuser', 1)
+	  userPassword => NethServer::Directory::getUserPassword('libuser', 1, $ldap)
       ] ],
     [ "cn=pam,$internalSuffix",
       merge => [
 	  objectClass => ['device', 'simpleSecurityObject'],
 	  cn => 'pam',
-	  userPassword => $directory->getUserPassword('pam', 1)
+	  userPassword => NethServer::Directory::getUserPassword('pam', 1, $ldap)
       ] ],
     );
 
 foreach(@entries) {
     my $method = @{$_}[1];
-    my $message = $directory->$method(@{$_});
+    my $message = $ldap->$method(@{$_});
     if($message->is_error) {
 	warn 'Error modifying `' . @{$_}[0] . '`: ' . join(" ", $message->code, $message->error_name());
     }

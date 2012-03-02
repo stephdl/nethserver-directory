@@ -1,46 +1,11 @@
 package NethServer::Directory;
 
-use strict;
-
-use Net::LDAP;
-use Authen::SASL;
 use esmith::ConfigDB;
-
-use Data::Dumper;
-
-our @ISA = qw(Net::LDAP);
-
-#
-# Connection setup
-#
-sub new 
-{
-    my $class = shift;
-    my $url = shift || 'ldapi://';
-    my $self = $class->SUPER::new($url, @_);
-
-    if($url eq 'ldapi://') {
-	$self->bind;
-    }
-
-    $self->{ConfigDb} = esmith::ConfigDB->open_ro();
-
-    bless ($self, $class);
-    return $self;
-}
-
-sub bind
-{
-    my $self = shift;
-    my $sasl = Authen::SASL->new(mechanism=>'EXTERNAL');
-    return $self->SUPER::bind(anonymous=>0, sasl => $sasl);
-}
-
 
 sub getDomainSuffix
 {
-    my $self = shift;
-    my $DomainName = $self->{ConfigDb}->get_value('DomainName');
+    my $ConfigDb = esmith::ConfigDB->open_ro();
+    my $DomainName = $ConfigDb->get_value('DomainName');
     $DomainName =~ s/\./,dc=/g;
     return "dc=" . $DomainName;
 }
@@ -50,40 +15,13 @@ sub getInternalSuffix
     return 'dc=directory,dc=nh';
 }
 
-#
-# Check if an entry exists then add or modify
-#
-sub merge
-{
-    my $self = shift;
-    my $arg = Net::LDAP::_dn_options(@_);
-    my $message;
-
-    my $searchResult = $self->search(
-	base => $arg->{dn},
-	filter => 'objectClass=*',
-	sizelimit => 1,
-	scope => 'base'
-	);
-   
-    if($searchResult->is_error && $searchResult->code() != Net::LDAP::Constant::LDAP_NO_SUCH_OBJECT) {
-	$message = $searchResult;
-    } elsif($searchResult->count() == 0) {
-	$message = $self->add($arg->{dn}, attrs => $arg->{merge});
-    } else {
-	$message = $self->modify($arg->{dn}, replace => $arg->{merge});
-    }
-
-    return $message;
-}
-
 sub getUserPassword
 {
-    my $self = shift;
     my $user = shift;
     my $crypt = shift;
+    my $ldap = shift;
 
-    my $cryptSaltFormat = $self->getCryptSaltFormat;   
+    my $cryptSaltFormat = getCryptSaltFormat($ldap);
     my $file;
 
     if($user eq 'pam') {
@@ -119,11 +57,16 @@ sub getUserPassword
 
 sub getCryptSaltFormat 
 {
-    my $self = shift;
+    my $ldap = shift;
 
+    # Default value, if cannot contact LDAP server
     my $default = '$6$%.86s';
 
-    my $searchResponse = $self->search(
+    if(ref $ldap ne 'NethServer::Directory::LDAP') {
+	return $default;
+    }
+
+    my $searchResponse = $ldap->search(
 	base => 'cn=config',
 	filter => 'objectClass=*',
 	scope => 'base',
@@ -132,7 +75,8 @@ sub getCryptSaltFormat
 	);
 
     if($searchResponse->is_error) {
-	warn 'Could not retrieve password salt format: ' . $searchResponse->error_name;
+	warn "Could not retrieve password salt format, using `$default`: " . 
+	    $searchResponse->error_name;
 	return $default;
     }
 

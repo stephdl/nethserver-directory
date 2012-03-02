@@ -5,6 +5,6 @@
 # This file should be world readable.
 #
 URI  ldapi://
-BASE { use NethServer::Directory; NethServer::Directory::getInternalSuffix }
+BASE { use NethServer::Directory; NethServer::Directory::getInternalSuffix() }
 TLS_REQCERT never
 

@@ -1,12 +1,13 @@
 #!/usr/bin/perl
 
 use NethServer::Directory;
+use NethServer::Directory::LDAP;
 use Net::LDAP;
 
 #
 # Ensure daemons are enabled and running
 #
-foreach my $daemon (qx(slapd nslcd)) {
+foreach my $daemon (qw(slapd nslcd)) {
     qx(chkconfig $daemon on);
     if ( $? != 0 ) {
 	warn "Error activating daemon at reboot. Is $daemon available?";
@@ -21,11 +22,11 @@ foreach my $daemon (qx(slapd nslcd)) {
 #
 # Connect to LDAP server
 #
-my $ldap = NethServer::Directory->new;
+my $ldap = NethServer::Directory::LDAP->new or die("Cannot connect LDAP server");
 my $CertificateFile = "/etc/openldap/slapd.pem";
 my $NslcdUid = getpwnam('nslcd');
-my $LdapInternalSuffix = $ldap->getInternalSuffix(); 
-my $LdapDomainSuffix = $ldap->getDomainSuffix(); 
+my $LdapInternalSuffix = NethServer::Directory::getInternalSuffix(); 
+my $LdapDomainSuffix = NethServer::Directory::getDomainSuffix(); 
 
 #
 # Load the rwm overlay, if missing
