@@ -6,7 +6,7 @@ use esmith::ConfigDB;
 
 my $ldap = NethServer::Directory::LDAP->new;
 my $configDb = esmith::ConfigDB->open_ro();
-my %ContactDefault = $configDb->get('ContactDefault')->props;
+my %OrganizationContact = $configDb->get('OrganizationContact')->props or {'Company' => 'Not Set'};
 my $internalSuffix = NethServer::Directory::getInternalSuffix();
 
 my @entries = (
@@ -14,7 +14,7 @@ my @entries = (
       merge => [
 	  objectClass => ['top', 'dcObject', 'organization'],
 	  dc => 'directory',
-	  o => $ContactDefault{Company},
+	  o => $OrganizationContact{Company},
       ] ],    
     [ "ou=People,$internalSuffix",
       merge => [
