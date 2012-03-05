@@ -50,13 +50,15 @@ my @entries = (
       ] ],
     );
 
+my $exitCode = 0;
+
 foreach(@entries) {
     my $method = @{$_}[1];
     my $message = $ldap->$method(@{$_});
     if($message->is_error) {
 	warn 'Error modifying `' . @{$_}[0] . '`: ' . join(" ", $message->code, $message->error_name());
+	$exitCode ++;
     }
 }
 
-
-
+exit($exitCode);

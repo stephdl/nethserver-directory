@@ -27,4 +27,5 @@ event_link('directory-posixaccount-provision', $_, '51') foreach(@events);
 safe_symlink("restart", "root/etc/e-smith/events/$_/services2adjust/nslcd") foreach(@events);
 
 
+event_link('directory-posixaccount-provision', 'organization-contact-update', '50');
 
