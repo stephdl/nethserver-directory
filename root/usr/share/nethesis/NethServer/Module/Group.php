@@ -81,9 +81,14 @@ class Group extends \Nethgui\Controller\TableController
         return $values;
     }
 
-    public function onParametersSaved(\Nethgui\Module\ModuleInterface $currentAction, $changes)
+    public function onParametersSaved(\Nethgui\Module\ModuleInterface $currentAction, $changes, $parameters)
     {
-        $this->getPlatform()->signalEvent(sprintf('group-%s@post-process', $currentAction->getIdentifier()), $this->parameters['groupname']);
+        if($currentAction->getIdentifier() === 'update') {
+            $event = 'modify';
+        } else {
+            $event = $currentAction->getIdentifier();
+        }
+        $this->getPlatform()->signalEvent(sprintf('group-%s@post-process', $event), array($parameters['groupname']));
     }
 
 }

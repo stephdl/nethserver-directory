@@ -132,10 +132,15 @@ class Modify extends \Nethgui\Controller\Table\Modify
 
     protected function onParametersSaved($changedParameters)
     {
-        if ($this->getIdentifier() !== 'delete') {
-            $this->getPlatform()->signalEvent(sprintf('user-%s@post-process', $this->getIdentifier()), array($this->parameters['username']));
+        if ($this->getIdentifier() === 'delete') {
+            # delete case is handled in "processDelete()" method
+            return;
+        } elseif ($this->getIdentifier() === 'update') {
+            $event = 'modify';
+        } else {
+            $event = $this->getIdentifier();
         }
+        $this->getPlatform()->signalEvent(sprintf('user-%s@post-process', $event), array($this->parameters['username']));
     }
 
 }
-
