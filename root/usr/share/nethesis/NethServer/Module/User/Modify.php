@@ -101,14 +101,14 @@ class Modify extends \Nethgui\Controller\Table\Modify
      */
     private function checkOrganizationDefaults()
     {
-        $ldapDefaults = $this->getPlatform()->getDatabase('configuration')->getKey('ldap');
+        $ldapDefaults = $this->getPlatform()->getDatabase('configuration')->getKey('OrganizationContact');
 
         $keyMap = array(
-            'Company' => 'defaultCompany',
-            'Dept' => 'defaultDepartment',
-            'Street' => 'defaultStreet',
-            'City' => 'defaultCity',
-            'Phone' => 'defaultPhoneNumber'
+            'Company' => 'Company',
+            'Dept' => 'Department',
+            'Street' => 'Street',
+            'City' => 'City',
+            'Phone' => 'PhoneNumber'
         );
 
         foreach ($keyMap as $key => $defaultKey) {

@@ -28,7 +28,7 @@ class Plugin extends \Nethgui\Controller\ListComposite implements \Nethgui\Adapt
 
     public function initialize()
     {
-        $this->loadChildren(array('*\Ssh', '*\Samba'));
+        $this->loadChildrenDirectory();
         parent::initialize();
     }
 
