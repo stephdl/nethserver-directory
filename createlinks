@@ -6,26 +6,27 @@ use esmith::Build::CreateLinks  qw(:all);
 # Configure the system to rely on slapd 
 # for account and password management
 #-------------------------------------------
+{
+    my @events = qw(
+        bootstrap-console-save
+        nethserver-directory-update
+    );
 
-my @events = qw(
-    bootstrap-console-save
-);
+    templates2events($_ , @events) foreach(qw(
+	/etc/nsswitch.conf
+	/etc/openldap/slapd.pem
+	/etc/sysconfig/ldap
+	/etc/openldap/ldap.conf
+	/etc/libuser.conf
+	/etc/pam_ldap.conf
+	/etc/nslcd.conf
+	/etc/pam.d/system-auth-nh
+    ));
+    
+    event_link('nethserver-directory-conf', $_, '50') foreach(@events);
+    event_link('nethserver-directory-dit-setup', $_, '51') foreach(@events);
+    safe_symlink("restart", "root/etc/e-smith/events/$_/services2adjust/nslcd") foreach(@events);
 
-templates2events($_ , @events) foreach(qw(
-    /etc/nsswitch.conf
-    /etc/openldap/slapd.pem
-    /etc/sysconfig/ldap
-    /etc/openldap/ldap.conf
-    /etc/libuser.conf
-    /etc/pam_ldap.conf
-    /etc/nslcd.conf
-    /etc/pam.d/system-auth-nh
-));
-
-event_link('directory-setup', $_, '50') foreach(@events);
-event_link('directory-posixaccount-provision', $_, '51') foreach(@events);
-safe_symlink("restart", "root/etc/e-smith/events/$_/services2adjust/nslcd") foreach(@events);
-
-
-event_link('directory-posixaccount-provision', 'organization-contact-update', '50');
-
+    # Changes to the organization contacts are propagated into LDAP:
+    event_link('nethserver-directory-dit-setup', 'nethserver-base-save', '50');
+}
