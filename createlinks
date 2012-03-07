@@ -30,4 +30,10 @@ use esmith::Build::CreateLinks  qw(:all);
 
     # Changes to the organization contacts are propagated into LDAP:
     event_link('nethserver-directory-dit-setup', 'nethserver-base-save', '50');
+
+    # Synchronize LDAP database on user create/modify event
+    event_link('nethserver-directory-user-modify', $_, '25') foreach(qw(
+        user-create 
+        user-modify
+    ));
 }

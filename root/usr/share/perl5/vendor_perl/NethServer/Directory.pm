@@ -2,17 +2,27 @@ package NethServer::Directory;
 
 use esmith::ConfigDB;
 
+sub domain2suffix
+{
+    my $domain = shift;   
+    $domain =~ s/\./,dc=/g; 
+    return "dc=" . $domain;
+}
+
 sub getDomainSuffix
 {
     my $ConfigDb = esmith::ConfigDB->open_ro();
-    my $DomainName = $ConfigDb->get_value('DomainName');
-    $DomainName =~ s/\./,dc=/g;
-    return "dc=" . $DomainName;
+    return domain2suffix($ConfigDb->get_value('DomainName'));
+}
+
+sub getInternalDomain
+{
+    return 'directory.nh';        
 }
 
 sub getInternalSuffix
 {
-    return 'dc=directory,dc=nh';
+    return domain2suffix(getInternalDomain());
 }
 
 sub getUserPassword
