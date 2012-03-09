@@ -1,6 +1,7 @@
 package NethServer::Directory;
 
 use esmith::ConfigDB;
+use NethServer::Directory::LDAP;
 
 sub domain2suffix
 {
@@ -91,6 +92,11 @@ sub getCryptSaltFormat
     }
 
     return $searchResponse->entry(0)->get_value('olcPasswordCryptSaltFormat') || $default;
+}
+
+sub connect
+{
+    return NethServer::Directory::LDAP->new;
 }
 
 1;
