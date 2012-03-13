@@ -54,6 +54,22 @@ if ($olcModuleSearch->count() == 0) {
     }
 }
 
+my @aclList = (qq{to attrs=userPassword
+                  by dn.exact="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" manage
+                  by dn.exact="cn=pam,$LdapInternalSuffix" peername.path="/var/run/ldapi" write
+                  by anonymous auth
+                  by self write
+                  by * none
+             },
+	     qq{to *
+                  by dn.exact="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" manage
+                  by dn.exact="cn=libuser,$LdapInternalSuffix" peername.ip="127.0.0.1" write
+                  by users ssf=71 read
+                  by * none
+             });
+
+# Compact the ACL removing any extra whitespace (should not harm):
+s/\s+/ /g foreach(@aclList);
 
 #
 # Replace some global settings, access control setup:
@@ -73,19 +89,7 @@ my @configChangeList = (
     ['olcDatabase={2}bdb,cn=config',
      replace => [
 	 olcSuffix => $LdapInternalSuffix,
-	 olcAccess => [
-	     qq{to attrs=userPassword 
-                  by anonymous auth
-                  by self write
-                  by dn.exact="cn=pam,$LdapInternalSuffix" peername.path="/var/run/ldapi" write
-                  by * break
-             },
-	     qq{to * 
-                  by dn.exact="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" manage
-                  by dn.exact="cn=libuser,$LdapInternalSuffix" peername.ip="127.0.0.1" write
-                  by users ssf=71 read
-             },
-	 ]
+	 olcAccess => [@aclList],
      ]]
     );
 
@@ -114,9 +118,12 @@ if($olcRelaySearch->count() == 0) {
 	attrs => [
 	    objectClass => ['olcDatabaseConfig', 'olcRelayConfig', 'olcConfig'],
 	    olcDatabase => 'relay',
-	    olcSuffix => $LdapDomainSuffix
-	]
-	);
+	    olcSuffix => $LdapDomainSuffix,
+	    olcAccess => [
+		"to attrs=userPassword by anonymous ssf=71 auth by self ssf=71 read", 
+		"to * by users read"
+	    ]
+	]);
     if($ldapAddRelayResponse->is_error) {	
 	warn 'Error adding relay database: ' . $ldapAddRelayResponse->error;
     } else {
@@ -124,6 +131,10 @@ if($olcRelaySearch->count() == 0) {
     }
 } 
 
+
+#
+# Add the rewriter module to relay backend
+#
 sub addOverlayRwm
 {
 

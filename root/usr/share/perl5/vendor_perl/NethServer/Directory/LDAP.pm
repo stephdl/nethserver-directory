@@ -61,5 +61,4 @@ sub merge
     return $message;
 }
 
-
 1;
