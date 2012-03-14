@@ -94,10 +94,7 @@ my @configChangeList = (
     );
 
 foreach(@configChangeList) {
-    my $ldapConfigResponse = $ldap->modify(@{$_});
-    if($ldapConfigResponse->is_error) {
-	warn 'error modifying `' . @{$_}[0] . '` ' . $ldapConfigResponse->error ;
-    }
+    $ldap->modify(@{$_});
 }
 
 #
@@ -125,7 +122,7 @@ if($olcRelaySearch->count() == 0) {
 	    ]
 	]);
     if($ldapAddRelayResponse->is_error) {	
-	warn 'Error adding relay database: ' . $ldapAddRelayResponse->error;
+	warn 'Error adding "relay" backend database: ' . $ldapAddRelayResponse->error;
     } else {
 	addOverlayRwm();
     }
