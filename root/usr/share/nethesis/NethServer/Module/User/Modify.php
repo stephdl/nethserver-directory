@@ -126,8 +126,10 @@ class Modify extends \Nethgui\Controller\Table\Modify
     {
         $accountDb = $this->getPlatform()->getDatabase('accounts');
         $accountDb->setType($key, 'user-deleted');
-        $this->getPlatform()->signalEvent('delete', array($key));
-        parent::processDelete($key);
+        $deleteProcess = $this->getPlatform()->signalEvent('user-delete', array($key));
+        if ($deleteProcess->getExitCode() === 0) {
+            parent::processDelete($key);
+        }
     }
 
     protected function onParametersSaved($changedParameters)
