@@ -10,7 +10,6 @@ use esmith::Build::CreateLinks  qw(:all);
 
     event_templates('nethserver-directory-update', qw(
 	/etc/nsswitch.conf
-	/etc/openldap/slapd.pem
 	/etc/sysconfig/ldap
 	/etc/openldap/ldap.conf
 	/etc/libuser.conf

@@ -21,10 +21,15 @@ foreach my $daemon (qw(slapd nslcd)) {
 # Connect to LDAP server
 #
 my $ldap = NethServer::Directory::LDAP->new or die("Cannot connect LDAP server");
-my $CertificateFile = "/etc/openldap/slapd.pem";
 my $NslcdUid = getpwnam('nslcd');
 my $LdapInternalSuffix = NethServer::Directory::getInternalSuffix(); 
 my $LdapDomainSuffix = NethServer::Directory::getDomainSuffix(); 
+
+
+#
+# Configure server certificate file (default openldap-servers location)
+#
+my $CertificateFile = '/etc/pki/tls/certs/slapd.pem';
 
 #
 # Load the rwm overlay, if missing
