@@ -7,12 +7,8 @@ use esmith::Build::CreateLinks  qw(:all);
 # for account and password management
 #-------------------------------------------
 {
-    my @events = qw(
-        bootstrap-console-save
-        nethserver-directory-update
-    );
 
-    templates2events($_ , @events) foreach(qw(
+    event_templates('nethserver-directory-update', qw(
 	/etc/nsswitch.conf
 	/etc/openldap/slapd.pem
 	/etc/sysconfig/ldap
@@ -22,17 +18,20 @@ use esmith::Build::CreateLinks  qw(:all);
 	/etc/nslcd.conf
 	/etc/pam.d/system-auth-nh
     ));
-    
-    event_link('initialize-default-databases', 'nethserver-directory-update', '00');
-    event_link('nethserver-directory-conf', $_, '50') foreach(@events);
-    event_link('nethserver-directory-dit-setup', $_, '51') foreach(@events);
-    safe_symlink("restart", "root/etc/e-smith/events/$_/services2adjust/nslcd") foreach(@events);
 
-    # Changes to the organization contacts are propagated into LDAP:
-    event_link('nethserver-directory-dit-setup', 'nethserver-base-save', '50');
+    event_actions('nethserver-directory-update',
+		  'initialize-default-databases' => '00',
+		  'firewall-adjust' => '20',
+		  'runlevel-adjust' => '20',
+		  'nethserver-directory-conf' => '30',
+		  'nethserver-directory-dit-setup' => '31');
+
+    # Changes to the organization contacts are propagated into LDAP:    
+    event_actions('nethserver-base-save',
+		  'nethserver-directory-dit-setup' => '50');
 
     # Synchronize LDAP database on user create/modify event
-    event_link('nethserver-directory-user-modify', $_, '25') foreach(qw(
+    event_actions($_, 'nethserver-directory-user-modify' => '25') foreach(qw(
         user-create 
         user-modify
     ));

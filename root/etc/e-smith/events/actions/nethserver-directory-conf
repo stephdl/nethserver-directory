@@ -9,10 +9,10 @@ use Net::LDAP;
 # Ensure daemons are running
 #
 foreach my $daemon (qw(slapd nslcd)) {
-    if(NethServer::Service::start($daemon) == 0) {
+    if(NethServer::Service::start($daemon) != 0) {
 	sleep 1;
     } else {
-	die("Could not start $daemon\n");
+	die("Could not start `$daemon`.\n");
     }
 }
 
