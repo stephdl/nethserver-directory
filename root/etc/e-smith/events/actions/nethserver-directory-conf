@@ -2,22 +2,20 @@
 
 use NethServer::Directory;
 use NethServer::Directory::LDAP;
+use NethServer::Service;
 use Net::LDAP;
 
 #
-# Ensure daemons are enabled and running
+# Ensure daemons are running
 #
 foreach my $daemon (qw(slapd nslcd)) {
-    qx(chkconfig $daemon on);
-    if ( $? != 0 ) {
-	warn "Error activating daemon at reboot. Is $daemon available?";
-    }
-    qx(service $daemon status >/dev/null);
-    if ( $? != 0 ) {
-	qx(service $daemon start);
+    if(NethServer::Service::start($daemon) == 0) {
 	sleep 1;
+    } else {
+	die("Could not start $daemon\n");
     }
 }
+
 
 #
 # Connect to LDAP server
