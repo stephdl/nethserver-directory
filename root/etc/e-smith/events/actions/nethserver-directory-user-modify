@@ -28,6 +28,7 @@ my $accountsDb = esmith::AccountsDB->open_ro;
 
 my $event = shift;
 my $userName = shift;
+my $errors = 0;
 
 die "Username argument missing." unless defined ($userName);
 
@@ -42,7 +43,7 @@ die "Account $userName is not a user or group account; update LDAP entry failed.
 unless (($type eq 'user') || ($type eq 'group') || ($userName eq 'admin'));
 
 #------------------------------------------------------------
-# Update LDAP database entry.
+# Update LDAP inetOrgPerson database entry.
 #------------------------------------------------------------
 my $domain = NethServer::Directory::getInternalDomain();
 my $base = NethServer::Directory::getInternalSuffix();
@@ -63,10 +64,30 @@ push @attrs, (o => $company) unless $company =~ /^\s*$/;
 push @attrs, (ou => $dept) unless $dept =~ /^\s*$/;
 push @attrs, (l => $city) unless $city =~ /^\s*$/;
 push @attrs, (street => $street) unless $street =~ /^\s*$/;
-    
-my %attrs = @attrs;
 
-my $result = $ldap->modify ($dn, replace => \%attrs);
-$result->code && warn "failed to modify entry for $dn: ", $result->error ;
+my $result = $ldap->modify ($dn, replace => \@attrs);
+if($result->is_error()) {
+    warn "Failed to set contact info on entry `$dn`: ", $result->error ;
+    $errors ++;
+}
 
-exit (0);
+# Update First and Last Name fields through libuser
+my $lusermod = '/usr/sbin/lusermod';
+
+my $firstName = $account->prop('FirstName') || '';
+my $lastName = $account->prop('LastName') || '';
+my $cn = $firstName . ' ' . $lastName;
+
+$cn =~ s/^\s+//g;
+$cn =~ s/\s+$//g;
+
+if(system($lusermod, 
+	  '--surname=' . $lastName, 
+	  '--givenname=' . $firstName, 
+	  '--commonname=' . $cn,
+	  $userName) != 0) {
+    $errors ++;
+    warn "Failed to modify user `$userName` name fields!";
+}
+
+exit ($errors == 0 ? 0 : 1);
