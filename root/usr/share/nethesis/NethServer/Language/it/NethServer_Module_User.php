@@ -7,7 +7,6 @@ $L['change-password_label'] = 'Cambia password';
 $L['username_label'] = 'Nome utente';
 $L['FirstName_label'] = 'Nome';
 $L['LastName_label'] = 'Cognome';
-$L['oldPassword_label'] = 'Vecchia password';
 $L['newPassword_label'] = 'Nuova password';
 $L['confirmNewPassword_label'] = 'Ripeti nuova password';
 $L['Change password for user `${0}`'] = 'Cambia password all\'utente `${0}`';
