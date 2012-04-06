@@ -67,6 +67,7 @@ my @aclList = (qq{to attrs=userPassword
              },
 	     qq{to *
                   by dn.exact="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" manage
+                  by dn.exact="cn=pam,$LdapInternalSuffix" peername.path="/var/run/ldapi" write
                   by dn.exact="cn=libuser,$LdapInternalSuffix" peername.ip="127.0.0.1" write
                   by users ssf=71 read
                   by * none
