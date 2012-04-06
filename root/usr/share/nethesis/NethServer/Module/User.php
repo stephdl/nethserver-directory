@@ -59,14 +59,8 @@ class User extends \Nethgui\Controller\TableController
 
     public function prepareViewForColumnKey(\Nethgui\Controller\Table\Read $action, \Nethgui\View\ViewInterface $view, $key, $values, &$rowMetadata)
     {
-        if ( ! isset($values['PasswordSet']) || $values['PasswordSet'] == "no") {
-            $rowMetadata['rowCssClass'] = ' nopasswd ';
-            $rowMetadata['rowCssClass'] .= ' locked ';
-        }
-        if (isset($values['Locked']) && $values['Locked'] == 'yes') {
-            $rowMetadata['rowCssClass'] .= ' locked ';
-        }
-
+        $userState = isset($values['__state']) ? strtolower($values['__state']) : 'new';
+        $rowMetadata['rowCssClass'] = trim($rowMetadata['rowCssClass'] . ' user-' . $userState);
         return strval($key);
     }
 
@@ -80,14 +74,33 @@ class User extends \Nethgui\Controller\TableController
     public function prepareViewForColumnActions(\Nethgui\Controller\Table\Read $action, \Nethgui\View\ViewInterface $view, $key, $values, &$rowMetadata)
     {
         $cellView = $action->prepareViewForColumnActions($view, $key, $values, $rowMetadata);
-        if (stripos($rowMetadata['rowCssClass'], 'nopasswd') !== false) {
-            unset($cellView['lock']);
-            unset($cellView['unlock']);
-        } else if (stripos($rowMetadata['rowCssClass'], 'locked') !== false) { //hide lock action
-            unset($cellView['lock']);
-        } else {
-            unset($cellView['unlock']); //hide unlock action
+        
+        $killList = array();
+        
+        $state = isset($values['__state']) ? $values['__state'] : 'new';
+        
+        switch($state) {
+            case 'new':
+                $killList[] = 'lock';
+                $killList[] = 'unlock';
+                break;
+            case 'active';
+                $killList[] = 'unlock';
+                break;
+            case 'locked';
+                $killList[] = 'lock';
+                break;
+            default:
+                break;
+                
         }
+        
+        foreach (array_keys(iterator_to_array($cellView)) as $key) {
+            if ( in_array($key, $killList)) {
+                unset($cellView[$key]);
+            }
+        }
+
         return $cellView;
     }
 
