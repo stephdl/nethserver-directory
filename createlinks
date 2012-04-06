@@ -38,4 +38,8 @@ use esmith::Build::CreateLinks  qw(:all);
         user-create 
         user-modify
     ));
+
+    # Update user settings when password policy changes:
+    event_actions('password-policy-update',
+		  'nethserver-directory-password-policy' => '30');
 }
