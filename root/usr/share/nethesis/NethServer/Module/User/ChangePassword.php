@@ -54,8 +54,10 @@ class ChangePassword extends \Nethgui\Controller\Table\AbstractAction
         parent::bind($request);
         $this->parameters['username'] = \Nethgui\array_end($request->getPath());
 
-        // FIXME Check if user exists
-        if ( ! $this->parameters['username']) {
+        $userExists = strlen($this->parameters['username']) > 0 
+        && $this->getPlatform()->getDatabase('accounts')->getType($this->parameters['username']) == 'user';
+        
+        if ( ! $userExists ) {
             throw new \Nethgui\Exception\HttpException('Not found', 404, 1322148399);
         }
     }

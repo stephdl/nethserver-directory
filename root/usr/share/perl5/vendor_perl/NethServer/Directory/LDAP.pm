@@ -75,16 +75,13 @@ sub merge
 
 	    foreach my $key ( keys(%updateAttributes) ) {		
 		if($entry->exists($key) && ref $updateAttributes{$key} eq 'ARRAY') {
-		    my @oldValues = @{$entry->get_value($key, asref => 1)};
+		    my @oldValues = sort @{$entry->get_value($key, asref => 1)};
 		    # New array value is concatenated with the old value
 		    # removing duplicate items
 		    my %h = map { $_ => 1 } @oldValues, @{$updateAttributes{$key}};
-		    my @values = keys %h;
+		    my @values = sort keys %h;
 
-		    sort @values;
-		    sort @oldValues;
-
-		    if(scalar @values != scalar @oldValues 
+		    if((scalar @values != scalar @oldValues)
 		       || join(':', @values) ne join(':', @oldValues)) {
 			$mergedAttributes{$key} = [@values];
 		    }
