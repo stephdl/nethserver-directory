@@ -24,7 +24,7 @@ my $ldap = NethServer::Directory::LDAP->new or die("Cannot connect LDAP server")
 my $NslcdUid = getpwnam('nslcd');
 my $LdapInternalSuffix = NethServer::Directory::getInternalSuffix(); 
 my $LdapDomainSuffix = NethServer::Directory::getDomainSuffix(); 
-
+my $errors = 0;
 
 #
 # Configure server certificate file (default openldap-servers location)
@@ -54,6 +54,7 @@ if ($olcModuleSearch->count() == 0) {
     );
     if($ldapAddResponse->is_error) {
 	warn "`$RewriterModule` rwm module load error";
+	$errors ++;
     }
 }
 
@@ -79,9 +80,13 @@ s/\s+/ /g foreach(@aclList);
 #
 # Replace some global settings, access control setup:
 #
-my @configChangeList = (
-    ['cn=config',
-     replace => [
+my @configChangeList = (    
+    # FIXME: Updating TLS attributes may result in libuser client
+    # connection problems. Here merge() will not touch unchanged
+    # attributes:
+    ['merge',
+     'cn=config',
+     attrs => [
 	 olcPasswordCryptSaltFormat => '$6$%.86s',
 	 olcTLSCipherSuite => 'HIGH:MEDIUM:+SSLv2',
 	 olcTLSCACertificateFile => $CertificateFile,
@@ -89,17 +94,30 @@ my @configChangeList = (
 	 olcTLSCertificateKeyFile => $CertificateFile,
 	 olcTLSVerifyClient => 'never',
     ]],
-    ['olcDatabase={-1}frontend,cn=config',
-     replace => [olcPasswordHash => '{CRYPT}']],
-    ['olcDatabase={2}bdb,cn=config',
+
+    ['modify',
+     'olcDatabase={-1}frontend,cn=config',
+     replace => [
+	 olcPasswordHash => '{CRYPT}'
+     ]],
+
+    ['modify',
+     'olcDatabase={2}bdb,cn=config',
      replace => [
 	 olcSuffix => $LdapInternalSuffix,
 	 olcAccess => [@aclList],
      ]]
     );
 
+
 foreach(@configChangeList) {
-    $ldap->modify(@{$_});
+    my @args = @{$_};
+    my $method = shift @args;
+    my $mergeResult = $ldap->$method(@args);
+    if($mergeResult->is_error()) {
+	warn 'Error modifying ' . $_->[0] . "\n";
+	$errors ++;
+    }
 }
 
 #
@@ -128,6 +146,7 @@ if($olcRelaySearch->count() == 0) {
 	]);
     if($ldapAddRelayResponse->is_error) {	
 	warn 'Error adding "relay" backend database: ' . $ldapAddRelayResponse->error;
+	$errors ++;
     } else {
 	addOverlayRwm();
     }
@@ -178,10 +197,11 @@ sub addOverlayRwm
 	if($ldapAddOverlayResponse->is_error) {
 	    warn "Error adding rewrite module overlay on `$relayDnSuffix`: " . 
 		$ldapAddOverlayResponse;
+	    $errors ++;
 	}
 
     }
 }
 
 
-$ldap->unbind;
+exit($errors == 0 ? 0 : 1);
