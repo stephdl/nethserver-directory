@@ -35,14 +35,14 @@ my @entries = (
       attrs => [
 	  objectClass => ['device', 'simpleSecurityObject'],
 	  cn => 'libuser',
-	  userPassword => NethServer::Directory::getUserPassword('libuser', 1, $ldap),
+	  userPassword => NethServer::Directory::getUserPassword('libuser', 1),
 	  description => "libuser account management"
       ] ],
     [ 'cn=pam,' . $internalSuffix,
       attrs => [
 	  objectClass => ['device', 'simpleSecurityObject'],
 	  cn => 'pam',
-	  userPassword => NethServer::Directory::getUserPassword('pam', 1, $ldap),
+	  userPassword => NethServer::Directory::getUserPassword('pam', 1),
 	  description => "pam_ldap module - root password service operations"
       ] ],
     );

@@ -38,8 +38,8 @@ sub new
 sub bind
 {
     my $self = shift;
-    my $sasl = Authen::SASL->new(mechanism=>'EXTERNAL');
-    return $self->SUPER::bind(anonymous=>0, sasl => $sasl);
+    my $sasl = Authen::SASL->new(mechanism => 'EXTERNAL');
+    return $self->SUPER::bind(anonymous => 0, sasl => $sasl);
 }
 
 #
@@ -58,7 +58,7 @@ sub merge
 	sizelimit => 1,
 	scope => 'base'
 	);
-   
+
     if($searchResult->is_error && $searchResult->code() != Net::LDAP::Constant::LDAP_NO_SUCH_OBJECT) {
 	$message = $searchResult;
     } elsif($searchResult->count() == 0) {
@@ -75,15 +75,28 @@ sub merge
 
 	    foreach my $key ( keys(%updateAttributes) ) {		
 		if($entry->exists($key) && ref $updateAttributes{$key} eq 'ARRAY') {
+		    my @oldValues = @{$entry->get_value($key, asref => 1)};
 		    # New array value is concatenated with the old value
 		    # removing duplicate items
-		    my %h = map { $_ => 1 } @{[($entry->get_value($key)), @{$updateAttributes{$key}}]};		    
-		    $mergedAttributes{$key} = [keys %h];
-		} else {
+		    my %h = map { $_ => 1 } @oldValues, @{$updateAttributes{$key}};
+		    my @values = keys %h;
+
+		    sort @values;
+		    sort @oldValues;
+
+		    if(scalar @values != scalar @oldValues 
+		       || join(':', @values) ne join(':', @oldValues)) {
+			$mergedAttributes{$key} = [@values];
+		    }
+		} elsif($updateAttributes{$key} ne $entry->get_value($key)) {
 		    # Scalar values and new values (of any type) 
 		    # are fully replaced:
 		    $mergedAttributes{$key} = $updateAttributes{$key};
 		}
+	    }
+
+	    if ( ! scalar %mergedAttributes ) {
+		next;
 	    }
 
 	    $entry->replace(%mergedAttributes);
@@ -97,6 +110,11 @@ sub merge
 	if(! defined $message) {
 	    $message = $updateResult;
 	}
+    }
+
+    # If not defined at this point, set $message to the last $
+    if(! defined $message) {
+	$message = $searchResult;
     }
 
     return $message;
