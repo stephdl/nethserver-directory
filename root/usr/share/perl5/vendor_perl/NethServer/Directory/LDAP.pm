@@ -6,7 +6,6 @@ use Net::LDAP;
 use Authen::SASL;
 use esmith::ConfigDB;
 use List::MoreUtils qw(uniq);
-use Data::Dumper;
 
 our @ISA = qw(Net::LDAP);
 
@@ -49,11 +48,12 @@ sub bind
 sub merge
 {
     my $self = shift;
-    my $arg = Net::LDAP::_dn_options(@_);
+    my $dn = shift;
+    my $options = Net::LDAP::_options(@_);
     my $message;
 
     my $searchResult = $self->search(
-	base => $arg->{dn},
+	base => $dn,
 	filter => 'objectClass=*',
 	sizelimit => 1,
 	scope => 'base'
@@ -62,32 +62,27 @@ sub merge
     if($searchResult->is_error && $searchResult->code() != Net::LDAP::Constant::LDAP_NO_SUCH_OBJECT) {
 	$message = $searchResult;
     } elsif($searchResult->count() == 0) {
-	$message = $self->add($arg->{dn}, attrs => $arg->{merge});
+	$message = $self->add($dn, attrs => $options->{attrs});
     } else {
 	my $updateResult;
 	#
 	# loop on $searchResult, replace string values, append list values
 	#
 	foreach my $entry ($searchResult->entries()) {
-	    my %updateAttributes = @{$arg->{'merge'}};
+	    my %updateAttributes = @{$options->{attrs}};
 	    my %mergedAttributes = ();
 
 
-	    foreach my $key ( keys(%updateAttributes) ) {
-		# skip 'dn' key:
-		if($key eq 'dn') {
-		    next;
-		}
-			       
-		if(ref $updateAttributes{$key} eq 'SCALAR' || !$entry->exists($key)) {
-		    # Scalar values and new values (of any type) 
-		    # are fully replaced:
-		    $mergedAttributes{$key} = $updateAttributes{$key};
-		} elsif(ref $updateAttributes{$key} eq 'ARRAY') {
+	    foreach my $key ( keys(%updateAttributes) ) {		
+		if($entry->exists($key) && ref $updateAttributes{$key} eq 'ARRAY') {
 		    # New array value is concatenated with the old value
 		    # removing duplicate items
 		    my %h = map { $_ => 1 } @{[($entry->get_value($key)), @{$updateAttributes{$key}}]};		    
 		    $mergedAttributes{$key} = [keys %h];
+		} else {
+		    # Scalar values and new values (of any type) 
+		    # are fully replaced:
+		    $mergedAttributes{$key} = $updateAttributes{$key};
 		}
 	    }
 

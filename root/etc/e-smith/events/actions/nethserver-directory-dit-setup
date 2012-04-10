@@ -11,18 +11,18 @@ my $internalSuffix = NethServer::Directory::getInternalSuffix();
 
 my @entries = (
     [ $internalSuffix,
-      merge => [
+      attrs => [
 	  objectClass => ['top', 'dcObject', 'organization'],
 	  dc => 'directory',
 	  o => $OrganizationContact{Company},
       ] ],    
-    [ "ou=People,$internalSuffix",
-      merge => [
+    [ 'ou=People,' . $internalSuffix,
+      attrs => [
 	  objectClass => ['top', 'organizationalUnit'],
 	  ou => 'People',
       ] ],
-    [ "ou=Groups,$internalSuffix",
-      merge => [
+    [ 'ou=Groups,' . $internalSuffix,
+      attrs => [
 	  objectClass => ['top', 'organizationalUnit'],
 	  ou => 'Groups',
       ] ],
@@ -31,15 +31,15 @@ my @entries = (
     # authentication services accounts (replace with SASL whenever possible):
     #
 
-    [ "cn=libuser,$internalSuffix",
-      merge => [
+    [ 'cn=libuser,' . $internalSuffix,
+      attrs => [
 	  objectClass => ['device', 'simpleSecurityObject'],
 	  cn => 'libuser',
 	  userPassword => NethServer::Directory::getUserPassword('libuser', 1, $ldap),
 	  description => "libuser account management"
       ] ],
-    [ "cn=pam,$internalSuffix",
-      merge => [
+    [ 'cn=pam,' . $internalSuffix,
+      attrs => [
 	  objectClass => ['device', 'simpleSecurityObject'],
 	  cn => 'pam',
 	  userPassword => NethServer::Directory::getUserPassword('pam', 1, $ldap),
@@ -50,8 +50,7 @@ my @entries = (
 my $exitCode = 0;
 
 foreach(@entries) {
-    my $method = @{$_}[1];
-    my $message = $ldap->$method(@{$_});
+    my $message = $ldap->merge(@{$_});
     if($message->is_error) {
 	warn 'Error modifying `' . @{$_}[0] . '`: ' . join(" ", $message->code, $message->error_name());
 	$exitCode ++;
