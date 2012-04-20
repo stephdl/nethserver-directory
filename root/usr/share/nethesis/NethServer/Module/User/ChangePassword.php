@@ -45,7 +45,7 @@ class ChangePassword extends \Nethgui\Controller\Table\AbstractAction
     public function initialize()
     {
         parent::initialize();
-        $this->declareParameter('newPassword', $this->createValidator()->minLength(8));
+        $this->declareParameter('newPassword', $this->getPlatform()->createValidator()->platform('password-strength', 'Users'));
         $this->declareParameter('confirmNewPassword', Validate::ANYTHING);
     }
 
