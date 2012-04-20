@@ -53,11 +53,16 @@ class Group extends \Nethgui\Controller\TableController
         $this
             ->setTableAdapter($this->getPlatform()->getTableAdapter('accounts', 'group'))
             ->setColumns($columns)
-            ->addTableAction(new \Nethgui\Controller\Table\Modify('create', $parameterSchema, 'NethServer\Template\Group\Modify'))
-            ->addTableAction(new \Nethgui\Controller\Table\Help('Help'))
             ->addRowAction(new \Nethgui\Controller\Table\Modify('update', $parameterSchema, 'NethServer\Template\Group\Modify'))
             ->addRowAction(new \Nethgui\Controller\Table\Modify('delete', $parameterSchema, 'Nethgui\Template\Table\Delete'))
         ;
+
+        // on create, check for group name uniqueness - Refs #1068
+        $parameterSchema[0][1] = $this->getPlatform()->createValidator(Validate::USERNAME)->platform('group-name');                
+        
+        $this
+            ->addTableAction(new \Nethgui\Controller\Table\Modify('create', $parameterSchema, 'NethServer\Template\Group\Modify'))
+            ->addTableAction(new \Nethgui\Controller\Table\Help('Help'));
 
         parent::initialize();
     }
@@ -83,7 +88,7 @@ class Group extends \Nethgui\Controller\TableController
 
     public function onParametersSaved(\Nethgui\Module\ModuleInterface $currentAction, $changes, $parameters)
     {
-        if($currentAction->getIdentifier() === 'update') {
+        if ($currentAction->getIdentifier() === 'update') {
             $event = 'modify';
         } else {
             $event = $currentAction->getIdentifier();

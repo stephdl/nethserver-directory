@@ -29,16 +29,25 @@ use Nethgui\Controller\Table\Modify as Table;
 class Modify extends \Nethgui\Controller\Table\Modify
 {
 
-    public function __construct($identifier)
+    public function initialize()
     {
-        if (in_array($identifier, array('create', 'update'))) {
-            $viewTemplate = 'NethServer\Template\User\Modify';
-        } elseif ($identifier == 'delete') {
-            $viewTemplate = 'Nethgui\Template\Table\Delete';
+        parent::initialize();
+        // after parent's initialization we have Platform correctly set up.
+
+        if (in_array($this->getIdentifier(), array('create', 'update'))) {
+            $this->setViewTemplate('NethServer\Template\User\Modify');
+        } elseif ($this->getIdentifier() === 'delete') {
+            $this->setViewTemplate('Nethgui\Template\Table\Delete');
+        }
+
+        $usernameValidator = $this->getPlatform()->createValidator(Validate::USERNAME);
+
+        if ($this->getIdentifier() === 'create') {
+            $usernameValidator = $usernameValidator->platform('user-name');
         }
 
         $parameterSchema = array(
-            array('username', Validate::USERNAME, Table::KEY),
+            array('username', $usernameValidator, Table::KEY),
             array('PasswordSet', Validate::ANYTHING, Table::FIELD),
             array('FirstName', Validate::NOTEMPTY, Table::FIELD),
             array('LastName', Validate::NOTEMPTY, Table::FIELD),
@@ -49,32 +58,7 @@ class Modify extends \Nethgui\Controller\Table\Modify
             array('Phone', Validate::ANYTHING, Table::FIELD),
         );
 
-        parent::__construct($identifier, $parameterSchema, $viewTemplate);
-    }
-
-    public function validate(\Nethgui\Controller\ValidationReportInterface $report)
-    {
-        parent::validate($report);
-
-        if ($this->getRequest()->isMutation() && $this->getIdentifier() == 'create' && ! $report->hasValidationErrors()) {
-            /*
-             * At this point the username parameter has passed the grammatical check
-             */
-            if ($this->systemUsernameExists($this->parameters['username'])) {
-                $report->addValidationErrorMessage($this, 'username', 'The system user "${0}" already exists!', array('${0}' => $this->parameters['username']));
-            }
-        }
-    }
-
-    /**
-     * @todo Fix the
-     * @param type $username
-     * @return type
-     */
-    private function systemUsernameExists($username)
-    {
-        $exitInfo = $this->getPlatform()->exec('/usr/bin/id ${1}', array($username));
-        return $exitInfo->getExitCode() === 0;
+        $this->setSchema($parameterSchema);
     }
 
     public function bind(\Nethgui\Controller\RequestInterface $request)
@@ -97,11 +81,12 @@ class Modify extends \Nethgui\Controller\Table\Modify
     }
 
     /**
-     * Read default values from "ldap" settings for each missing "organization" field value
+     * Read default values from OrganizationContact settings 
+     * for each missing "organization" field value
      */
     private function checkOrganizationDefaults()
     {
-        $ldapDefaults = $this->getPlatform()->getDatabase('configuration')->getKey('OrganizationContact');
+        $organizationContact = $this->getPlatform()->getDatabase('configuration')->getKey('OrganizationContact');
 
         $keyMap = array(
             'Company' => 'Company',
@@ -113,7 +98,7 @@ class Modify extends \Nethgui\Controller\Table\Modify
 
         foreach ($keyMap as $key => $defaultKey) {
             if (empty($this->parameters[$key])) {
-                $this->parameters[$key] = $ldapDefaults[$defaultKey];
+                $this->parameters[$key] = $organizationContact[$defaultKey];
             }
         }
     }
@@ -135,7 +120,8 @@ class Modify extends \Nethgui\Controller\Table\Modify
     protected function onParametersSaved($changedParameters)
     {
         if ($this->getIdentifier() === 'delete') {
-            # delete case is handled in "processDelete()" method
+            // delete case is handled in "processDelete()" method: 
+            // signalEvent() is invoked there.
             return;
         } elseif ($this->getIdentifier() === 'update') {
             $event = 'modify';

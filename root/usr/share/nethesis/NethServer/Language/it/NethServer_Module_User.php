@@ -23,7 +23,6 @@ $L['Proceed with user lock?'] ='Procedere con il blocco dell\'utente?';
 $L['Lock user `${0}`'] = 'Blocca l\'utente `${0}`';
 $L['Unlock user `${0}`'] = 'Sblocca l\'utente `${0}`';
 
-$L['The system user "${0}" already exists!'] = 'L\'utente di sistema "${0}" esiste già!';
 $L['user-modify_success'] = 'Le modifiche per l\'utente "${1}" sono state salvate correttamente';
 $L['user-modify_failure'] = 'Errore nel salvataggio delle modifiche per l\'utente "${1}"';
 $L['user-create_success'] = 'L\'utente "${1}" è stato creato';
@@ -34,7 +33,6 @@ $L['user-lock_success'] = 'L\'utente "${1}" è stat bloccato';
 $L['user-lock_failure'] = 'Errore durante il blocco dell\'utente "${1}"';
 $L['user-unlock_success'] = 'L\'utente "${1}" è stat sbloccato';
 $L['user-unlock_failure'] = 'Errore durante lo sblocco dell\'utente "${1}"';
-
 
 $L['password-modify_success'] = 'La password dell\'utente `${1}` è stata modificata';
 $L['password-modify_failure'] = 'Errore nella modifica della password per l\'utente `${1}`'; 
