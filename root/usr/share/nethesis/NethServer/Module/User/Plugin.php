@@ -61,10 +61,4 @@ class Plugin extends \Nethgui\Controller\ListComposite implements \Nethgui\Adapt
         return $this;
     }
 
-    public function prepareView(\Nethgui\View\ViewInterface $view)
-    {
-        parent::prepareView($view);
-        $view->setTemplate(FALSE);
-    }
-
 }
