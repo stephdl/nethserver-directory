@@ -45,7 +45,7 @@ class Update extends Modify implements \Nethgui\Module\ModuleCompositeInterface
 
     public function addChild(\Nethgui\Module\ModuleInterface $module)
     {
-        $this->pluginSet->addChild($module);
+        return $this->pluginSet->addChild($module);
     }
 
     public function getChildren()

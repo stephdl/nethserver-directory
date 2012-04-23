@@ -31,5 +31,9 @@ interface PluginInterface
     */
     public function getParentIdentifier();
 
+    /**
+     * @param string $key
+     * @return \NethServer\Module\User\PluginInterface 
+     */
     public function setKey($key);
 }
