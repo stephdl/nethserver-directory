@@ -17,6 +17,8 @@ use esmith::Build::CreateLinks  qw(:all);
 	/etc/nslcd.conf
 	/etc/pam.d/system-auth-nh
 	/etc/pam.d/password-auth-nh
+        /etc/hosts.allow
+        /etc/hosts.deny
     ));
 
     event_actions('nethserver-directory-update',
