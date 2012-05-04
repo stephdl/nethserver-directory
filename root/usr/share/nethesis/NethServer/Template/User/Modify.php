@@ -15,9 +15,9 @@ $basicInfo = $view->panel()
     ->insert($view->textInput('FirstName'))
     ->insert($view->textInput('LastName'))
     ->insert($view->objectPicker('Groups')
-        ->setAttribute('objects', 'GroupsDatasource')
-        ->setAttribute('template', 'Groups')
-        ->setAttribute('objectLabel', 1));
+    ->setAttribute('objects', 'GroupsDatasource')
+    ->setAttribute('template', 'Groups')
+    ->setAttribute('objectLabel', 1));
 
 
 $infoTab = $view->panel()
@@ -37,13 +37,14 @@ $tabs = $view->tabs()
 if ($view->getModule()->getIdentifier() == 'update') {
     $pluginTabs = array();
     foreach ($view['Plugin'] as $pluginView) {
-        if ($pluginView->getModule() instanceof \NethServer\Module\User\PluginInterface)
-        {
-            $parentId = $pluginView->getModule()->getParentIdentifier();
-            $index = sprintf("%4d-%s", $parentId[1],  $parentId[0]);
+        $pluginModule = $pluginView->getModule();
+        if ($pluginModule instanceof \Nethgui\Module\ModuleInterface) {                                                
+            
+            $index = $pluginModule->getAttributesProvider()->getCategory();
+            
             if ( ! isset($pluginTabs[$index])) {
-                // Create new tab plugin if needed:
-                $pluginTabs[$index] = $view->panel()->setAttribute('name', $parentId[0]);
+                // On the first time, create a new tab plugin for the Category:
+                $pluginTabs[$index] = $view->panel()->setAttribute('name', $index);
             }
             $pluginTabs[$index]->insert($view->literal($pluginView)); #add plugin view to the tab
         } else {
@@ -59,7 +60,7 @@ if ($view->getModule()->getIdentifier() == 'update') {
 
 echo $tabs;
 
-$buttons = $view->buttonList($view::BUTTON_SUBMIT  | $view::BUTTON_HELP);
+$buttons = $view->buttonList($view::BUTTON_SUBMIT | $view::BUTTON_HELP);
 
 if ($view->getModule()->getIdentifier() == 'update') {
     $buttons->insert($view->button('change-password', $view::BUTTON_LINK));
