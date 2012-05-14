@@ -131,4 +131,15 @@ class Modify extends \Nethgui\Controller\Table\Modify
         $this->getPlatform()->signalEvent(sprintf('user-%s@post-process', $event), array($this->parameters['username']));
     }
 
+    public function prepareView(\Nethgui\View\ViewInterface $view)
+    {
+        parent::prepareView($view);
+        if (isset($this->parameters['username'])) {
+            $view['change-password'] = $view->getModuleUrl('../change-password/' . $this->parameters['username']);
+            $view['FormAction'] = $view->getModuleUrl($this->parameters['username']);
+        } else {
+            $view['change-password'] = '';
+        }
+    }
+
 }

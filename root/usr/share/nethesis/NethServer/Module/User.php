@@ -47,7 +47,7 @@ class User extends \Nethgui\Controller\TableController
             ->setColumns($columns)
             ->addTableActionPluggable(new User\Modify('create'))
             ->addTableAction(new \Nethgui\Controller\Table\Help('Help'))
-            ->addRowActionPluggable(new User\Update())
+            ->addRowActionPluggable(new User\Modify('update'))
             ->addRowAction(new User\ChangePassword(new User\PasswordStash(), 'change-password'))
             ->addRowAction(new User\ToggleLock('lock'))
             ->addRowAction(new User\ToggleLock('unlock'))
