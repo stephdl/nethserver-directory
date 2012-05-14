@@ -32,32 +32,8 @@ $infoTab = $view->panel()
 $tabs = $view->tabs()
     ->insert($basicInfo)
     ->insert($infoTab)
+    ->insertPlugins()
 ;
-
-
-
-$pluginTabs = array();
-foreach ($view['Plugin'] as $pluginView) {
-    $pluginModule = $pluginView->getModule();
-    if ($pluginModule instanceof \Nethgui\Module\ModuleInterface) {
-
-        $index = $pluginModule->getAttributesProvider()->getCategory();
-
-        if ( ! isset($pluginTabs[$index])) {
-            // On the first time, create a new tab plugin for the Category:
-            $pluginTabs[$index] = $view->panel()->setAttribute('name', $index);
-        }
-        $pluginTabs[$index]->insert($view->literal($pluginView)); #add plugin view to the tab
-    } else {
-        $tabs->insert($view->literal($pluginView)); #add a new tab
-    }
-}
-
-ksort($pluginTabs);
-foreach ($pluginTabs as $tab) {
-    $tabs->insert($tab);
-}
-
 
 echo $tabs;
 
