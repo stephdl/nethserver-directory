@@ -204,4 +204,8 @@ sub addOverlayRwm
 }
 
 
+NethServer::Service::manage_add('nethserver-directory',
+				'slapd',
+				'nslcd');
+
 exit($errors == 0 ? 0 : 1);
