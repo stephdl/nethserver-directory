@@ -23,11 +23,12 @@ use esmith::Build::CreateLinks  qw(:all);
 
     event_actions('nethserver-directory-update',
 		  'initialize-default-databases' => '00',
-		  'firewall-adjust' => '20',
-		  'runlevel-adjust' => '20',
-		  'nethserver-directory-conf' => '30',
-		  'nethserver-directory-dit-setup' => '31',
-		  'nethserver-directory-password-policy' => '40');
+		  'nethserver-directory-conf' => '20',
+		  'nethserver-directory-dit-setup' => '40',
+		  'nethserver-directory-password-policy' => '50',
+		  'runlevel-adjust' => '60',
+		  'firewall-adjust' => '62',
+	);
 
     # Changes to the organization contacts are propagated into LDAP:
     event_actions('nethserver-base-save',
