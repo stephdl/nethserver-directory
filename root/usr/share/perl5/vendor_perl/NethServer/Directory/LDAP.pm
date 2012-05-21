@@ -50,7 +50,7 @@ sub merge
     my $self = shift;
     my $dn = shift;
     my $options = Net::LDAP::_options(@_);
-    my $message;
+    my $message = $self->message('Net::LDAP::Message::Dummy');
 
     my $searchResult = $self->search(
 	base => $dn,
