@@ -20,7 +20,7 @@ sub new
     $options{'async'} = 0;    
     $options{'onerror'} = sub { 
 	my $result = shift;
-	warn join(' ', $result->error_name(), $result->error());
+	warn join(' ', $result->dn(), $result->error_name(), $result->error());
 	return $result;
     };
 
@@ -59,61 +59,58 @@ sub merge
 	scope => 'base'
 	);
 
-    if($searchResult->is_error && $searchResult->code() != Net::LDAP::Constant::LDAP_NO_SUCH_OBJECT) {
-	$message = $searchResult;
+    if($searchResult->is_error 
+       && $searchResult->code() != Net::LDAP::Constant::LDAP_NO_SUCH_OBJECT) {
+	return $searchResult;
     } elsif($searchResult->count() == 0) {
-	$message = $self->add($dn, attrs => $options->{attrs});
-    } else {
-	my $updateResult;
-	#
-	# loop on $searchResult, replace string values, append list values
-	#
-	foreach my $entry ($searchResult->entries()) {
-	    my %updateAttributes = @{$options->{attrs}};
-	    my %mergedAttributes = ();
+	return $self->add($dn, attrs => $options->{attrs});
+    } 
 
+    # Refs #1137: null message object as default response.
+    my $updateResult = $self->message('Net::LDAP::Message::Dummy');
 
-	    foreach my $key ( keys(%updateAttributes) ) {		
-		if($entry->exists($key) && ref $updateAttributes{$key} eq 'ARRAY') {
-		    my @oldValues = sort @{$entry->get_value($key, asref => 1)};
-		    # New array value is concatenated with the old value
-		    # removing duplicate items
-		    my %h = map { $_ => 1 } @oldValues, @{$updateAttributes{$key}};
-		    my @values = sort keys %h;
+    #
+    # loop on $searchResult, replace string values, append list values
+    #
+    foreach my $entry ($searchResult->entries()) {
+	my %updateAttributes = @{$options->{attrs}};
+	my %mergedAttributes = ();
 
-		    if((scalar @values != scalar @oldValues)
-		       || join(':', @values) ne join(':', @oldValues)) {
-			$mergedAttributes{$key} = [@values];
-		    }
-		} elsif($updateAttributes{$key} ne $entry->get_value($key)) {
-		    # Scalar values and new values (of any type) 
-		    # are fully replaced:
-		    $mergedAttributes{$key} = $updateAttributes{$key};
+	foreach my $key ( keys(%updateAttributes) ) {		
+	    if($entry->exists($key) && ref $updateAttributes{$key} eq 'ARRAY') {
+		my @oldValues = sort @{$entry->get_value($key, asref => 1)};
+		# New array value is concatenated with the old value
+		# removing duplicate items
+		my %h = map { $_ => 1 } @oldValues, @{$updateAttributes{$key}};
+		my @values = sort keys %h;
+
+		if((scalar @values != scalar @oldValues)
+		   || join(':', @values) ne join(':', @oldValues)) {
+		    $mergedAttributes{$key} = [@values];
 		}
-	    }
-
-	    if ( ! scalar %mergedAttributes ) {
-		next;
-	    }
-
-	    $entry->replace(%mergedAttributes);
-	    $updateResult = $entry->update($self);
-	    if($updateResult->is_error()) {
-		$message = $updateResult;
+	    } elsif($updateAttributes{$key} ne $entry->get_value($key)) {
+		# Scalar values and new values (of any type) 
+		# are fully replaced:
+		$mergedAttributes{$key} = $updateAttributes{$key};
 	    }
 	}
-		
-	# If not defined at this point, set $message to the last $updateResult
-	if(! defined $message) {
+
+	if ( ! scalar %mergedAttributes ) {
+	    next;
+	}
+
+	$entry->replace(%mergedAttributes);
+	$updateResult = $entry->update($self);
+	if($updateResult->is_error()) {
 	    $message = $updateResult;
 	}
     }
 
-    # If not defined at this point, set $message to the last $
-    if(! defined $message) {
-	$message = $searchResult;
+    # If not defined at this point, set $message to the last $updateResult
+    if( ! defined $message) {
+	$message = $updateResult;
     }
-
+    
     return $message;
 }
 
