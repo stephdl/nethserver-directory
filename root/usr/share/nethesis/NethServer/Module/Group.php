@@ -43,8 +43,10 @@ class Group extends \Nethgui\Controller\TableController
             'Actions',
         );
 
+        $groupNameValidator = $this->getPlatform()->createValidator(Validate::USERNAME)->platform('group-name');
+        
         $parameterSchema = array(
-            array('groupname', Validate::USERNAME, \Nethgui\Controller\Table\Modify::KEY),
+            array('groupname', $groupNameValidator, \Nethgui\Controller\Table\Modify::KEY),
             array('Description', Validate::ANYTHING, \Nethgui\Controller\Table\Modify::FIELD, 'Description'),
             array('Members', Validate::USERNAME_COLLECTION, \Nethgui\Controller\Table\Modify::FIELD, 'Members', ','),
             array('MembersDatasource', FALSE, array($this, 'provideMembersDatasource')), // this parameter will never be submitted: set an always-failing validator
@@ -55,12 +57,6 @@ class Group extends \Nethgui\Controller\TableController
             ->setColumns($columns)
             ->addRowAction(new \Nethgui\Controller\Table\Modify('update', $parameterSchema, 'NethServer\Template\Group\Modify'))
             ->addRowAction(new \Nethgui\Controller\Table\Modify('delete', $parameterSchema, 'Nethgui\Template\Table\Delete'))
-        ;
-
-        // on create, check for group name uniqueness - Refs #1068
-        $parameterSchema[0][1] = $this->getPlatform()->createValidator(Validate::USERNAME)->platform('group-name');                
-        
-        $this
             ->addTableAction(new \Nethgui\Controller\Table\Modify('create', $parameterSchema, 'NethServer\Template\Group\Modify'))
             ->addTableAction(new \Nethgui\Controller\Table\Help('Help'));
 

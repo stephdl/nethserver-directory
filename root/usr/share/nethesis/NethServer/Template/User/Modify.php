@@ -12,7 +12,7 @@ echo $view->header('username')->setAttribute('template', $headerText);
 
 $basicInfo = $view->panel()
     ->setAttribute('title', $T('BasicInfo_Title'))
-    ->insert($view->textInput('username', ($view->getModule()->getIdentifier() == 'update' ? $view::STATE_READONLY : 0)))
+    ->insert($view->textInput('username', ($view->getModule()->getIdentifier() == 'create' ? 0 : $view::STATE_DISABLED | $view::STATE_READONLY )))
     ->insert($view->textInput('FirstName'))
     ->insert($view->textInput('LastName'))
     ->insert($view->objectPicker('Groups')

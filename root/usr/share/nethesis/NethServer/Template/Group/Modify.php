@@ -7,7 +7,7 @@ if ($view->getModule()->getIdentifier() == 'update') {
 
 echo $view->panel()
     ->insert($view->header('groupname')->setAttribute('template', $headerText))
-    ->insert($view->textInput('groupname', ($view->getModule()->getIdentifier() == 'update' ? $view::STATE_READONLY : 0)))
+    ->insert($view->textInput('groupname', ($view->getModule()->getIdentifier() === 'create' ? 0 : $view::STATE_DISABLED | $view::STATE_READONLY)))
     ->insert($view->textInput('Description'))
     ->insert($view->objectPicker('Members')
         ->setAttribute('objects', 'MembersDatasource')

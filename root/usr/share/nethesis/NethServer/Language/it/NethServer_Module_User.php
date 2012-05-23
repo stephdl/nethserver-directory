@@ -51,3 +51,7 @@ $L['ExtraInfo_Title'] = "Dettagli";
 $L['Service_Title'] = "Servizi";
 
 $L['User_Tags'] = "utente utenti nome cognome password gruppi indirizzo citta ufficio telefono";
+
+$L['valid_platform,user-name,uniq-account,3'] = 'Il nome utente `${1}` è già registrato';
+$L['valid_platform,user-name,user-length,1'] = 'Nome troppo lungo: ${reason}';
+

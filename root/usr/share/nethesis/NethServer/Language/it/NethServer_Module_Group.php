@@ -16,3 +16,6 @@ $L['group-create_success'] = 'Il gruppo "${1}" è stato creato';
 $L['group-create_failure'] = 'Errore nella creazione del gruppo "${1}"';
 $L['group-delete_success'] = 'Il gruppo "${1}" è stato eliminato';
 $L['group-delete_failure'] = 'Errore nell\'eliminazione del gruppo "${1}"';
+
+$L['valid_platform,group-name,uniq-account,3'] = 'Il nome di gruppo `${1}` è già registrato';
+$L['valid_platform,group-name,group-length,1'] = 'Nome troppo lungo: ${reason}';
