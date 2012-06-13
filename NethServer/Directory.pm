@@ -75,4 +75,61 @@ sub connect
     return NethServer::Directory::LDAP->new;
 }
 
+
+sub addAccessDirective ($$)
+{
+    my $directive = shift;
+    my $field = shift;
+
+    my $ldap = NethServer::Directory::connect();
+    my $internalSuffix = NethServer::Directory::getInternalSuffix();
+    my $exitCode = 0;
+
+    my $configSearch = $ldap->search(
+	base => "cn=config",
+	filter => "(&(olcSuffix=$internalSuffix)(objectClass=olcBdbConfig))",
+	sizelimit => 1,
+	scope => 'one'
+	);
+
+    if($configSearch->is_error()) {	
+	warn "Cannot find `$internalSuffix` subtree";
+	return 0;
+    }
+    
+    my $configEntry = $configSearch->pop_entry();
+    
+    if($configEntry) {
+
+	my @olcAccess = $configEntry->get_value('olcAccess');
+       
+	if($field ne '*') {
+	    $field = 'attrs=' . $field;
+	}
+
+	foreach(@olcAccess) {
+	    if (m/to \Q$field\E/s && ! m/\Q$directive\E/) {
+		s/ manage/ manage $directive/;
+	    }
+	}
+	
+	# print Dumper([@olcAccess]);	    
+	my $message = $ldap->modify(
+	    $configEntry->dn(),
+	    replace => [
+		olcAccess => [@olcAccess]
+	    ]);
+	
+	if($message->is_error()) {    	
+	    warn '';
+	} else {
+	    # success
+	    return 1;
+	}
+    } 
+    
+    return 0;
+   
+}
+
 1;
