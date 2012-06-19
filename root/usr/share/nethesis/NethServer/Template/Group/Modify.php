@@ -10,7 +10,7 @@ if ($view->getModule()->getIdentifier() == 'update') {
 echo $view->header('groupname')->setAttribute('template', $headerText);
 
 $groupInfo = $view->panel()
-    ->setAttribute('title', $T('Group_Tab_Title'))    
+    ->setAttribute('title', $T('GroupTab_Title'))    
     ->insert($view->textInput('groupname', ($view->getModule()->getIdentifier() === 'create' ? 0 : $view::STATE_DISABLED | $view::STATE_READONLY)))
     ->insert($view->textInput('Description'))
     ->insert($view->objectPicker('Members')
