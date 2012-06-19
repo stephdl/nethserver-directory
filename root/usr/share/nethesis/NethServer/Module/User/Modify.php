@@ -24,7 +24,10 @@ use Nethgui\System\PlatformInterface as Validate;
 use Nethgui\Controller\Table\Modify as Table;
 
 /**
- * @todo describe class
+ * User modify actions
+ *
+ * @author Davide Principi <davide.principi@nethesis.it>
+ * @since 1.0
  */
 class Modify extends \Nethgui\Controller\Table\Modify
 {

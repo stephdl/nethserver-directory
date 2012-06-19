@@ -43,53 +43,16 @@ class Group extends \Nethgui\Controller\TableController
             'Actions',
         );
 
-        $groupNameValidator = $this->getPlatform()->createValidator(Validate::USERNAME)->platform('group-name');
-        
-        $parameterSchema = array(
-            array('groupname', $groupNameValidator, \Nethgui\Controller\Table\Modify::KEY),
-            array('Description', Validate::ANYTHING, \Nethgui\Controller\Table\Modify::FIELD, 'Description'),
-            array('Members', Validate::USERNAME_COLLECTION, \Nethgui\Controller\Table\Modify::FIELD, 'Members', ','),
-            array('MembersDatasource', FALSE, array($this, 'provideMembersDatasource')), // this parameter will never be submitted: set an always-failing validator
-        );
-
         $this
             ->setTableAdapter($this->getPlatform()->getTableAdapter('accounts', 'group'))
             ->setColumns($columns)
-            ->addRowAction(new \Nethgui\Controller\Table\Modify('update', $parameterSchema, 'NethServer\Template\Group\Modify'))
-            ->addRowAction(new \Nethgui\Controller\Table\Modify('delete', $parameterSchema, 'Nethgui\Template\Table\Delete'))
-            ->addTableAction(new \Nethgui\Controller\Table\Modify('create', $parameterSchema, 'NethServer\Template\Group\Modify'))
-            ->addTableAction(new \Nethgui\Controller\Table\Help('Help'));
+            ->addTableActionPluggable(new Group\Modify('create'), 'PlugService')
+            ->addTableAction(new \Nethgui\Controller\Table\Help('Help'))
+            ->addRowActionPluggable(new Group\Modify('update'), 'PlugService')
+            ->addRowActionPluggable(new Group\Modify('delete'), 'PlugDelete')
+        ;
 
         parent::initialize();
-    }
-
-    public function provideMembersDatasource()
-    {
-        $platform = $this->getPlatform();
-        if (is_null($platform)) {
-            return array();
-        }
-
-        $users = $platform->getTableAdapter('accounts', 'user');
-
-        $values = array();
-
-        // Build the datasource rows couples <key, label>
-        foreach ($users as $username => $row) {
-            $values[] = array($username, sprintf('%s %s (%s)', $row['FirstName'], $row['LastName'], $username));
-        }
-
-        return $values;
-    }
-
-    public function onParametersSaved(\Nethgui\Module\ModuleInterface $currentAction, $changes, $parameters)
-    {
-        if ($currentAction->getIdentifier() === 'update') {
-            $event = 'modify';
-        } else {
-            $event = $currentAction->getIdentifier();
-        }
-        $this->getPlatform()->signalEvent(sprintf('group-%s@post-process', $event), array($parameters['groupname']));
     }
 
 }
