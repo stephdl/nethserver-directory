@@ -2,9 +2,9 @@
 $view->requireFlag($view::INSET_FORM);
 
 if ($view->getModule()->getIdentifier() == 'update') {
-    $headerText = 'Update group `${0}`';
+    $headerText = $T('Update group `${0}`');
 } else {
-    $headerText = 'Create a new group';
+    $headerText = $T('Create a new group');
 }
 
 echo $view->header('groupname')->setAttribute('template', $headerText);
@@ -15,7 +15,7 @@ $groupInfo = $view->panel()
     ->insert($view->textInput('Description'))
     ->insert($view->objectPicker('Members')
         ->setAttribute('objects', 'MembersDatasource')
-        ->setAttribute('template', 'Members')
+        ->setAttribute('template', $T('Members'))
         ->setAttribute('objectLabel', 1));
 
 $tabs = $view->tabs()
