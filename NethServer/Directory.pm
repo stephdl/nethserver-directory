@@ -2,6 +2,7 @@ package NethServer::Directory;
 
 use esmith::ConfigDB;
 use NethServer::Directory::LDAP;
+use Net::LDAP::LDIF;
 
 sub domain2suffix
 {
