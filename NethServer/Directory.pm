@@ -4,6 +4,8 @@ use esmith::ConfigDB;
 use NethServer::Directory::LDAP;
 use Net::LDAP::LDIF;
 
+our @ISA = qw(NethServer::Directory::LDAP);
+
 sub domain2suffix
 {
     my $domain = shift;   
@@ -76,7 +78,6 @@ sub connect
     return NethServer::Directory::LDAP->new;
 }
 
-
 sub addAccessDirective ($$)
 {
     my $directive = shift;
@@ -131,6 +132,38 @@ sub addAccessDirective ($$)
     
     return 0;
    
+}
+
+=head2 new
+
+Create a NethServer::Directory instance as a subclass of Net::LDAP
+package.  The returned object has already bind()ed to the internal
+LDAP server.
+
+=cut
+sub new
+{
+    my $class = shift;
+    my $self = $class->SUPER::new();
+    return $self;
+}
+
+=head2 getUser(UID)
+
+Return a Net::LDAP::Entry object for the given UID, or undef if not
+found.
+
+=cut
+sub getUser($)
+{
+    my $self = shift;
+    my $uid = shift;
+
+    return $self->search(
+	base => 'ou=People, ' . NethServer::Directory::getInternalSuffix(),
+	scope => 'one',
+	filter => sprintf('(&(objectClass=PosixAccount)(uid=%s))', $uid),
+	)->pop_entry();
 }
 
 1;
