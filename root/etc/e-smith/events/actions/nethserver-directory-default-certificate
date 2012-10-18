@@ -1,0 +1,39 @@
+#!/bin/bash 
+
+#
+# NethServer
+#
+# Create the default slapd TLS certificate. Refs #1491
+#
+# Copyright (C) 2012 Nethesis srl
+#
+
+CMDDB="/sbin/e-smith/db"
+
+HOSTNAME=`hostname`
+City=`$CMDDB configuration getprop OrganizationContact City`
+Company=`$CMDDB configuration getprop OrganizationContact Company`
+
+#
+# This script is part of openldap-servers
+# openldap-servers-2.4.23-20.el6.x86_64
+#
+
+# generate sample TLS certificates
+if [ ! -f /etc/pki/tls/certs/slapd.pem ] ; then
+pushd /etc/pki/tls/certs > /dev/null 2>&1
+umask 077
+cat << EOF | make slapd.pem > /dev/null 2>&1
+--
+SomeState
+${City:=SomeCity}
+${Company:=SomeOrganization}
+SomeOrganizationalUnit
+${HOSTNAME:=localhost.localdomain}
+root@${HOSTNAME:=localhost.localdomain}
+EOF
+chown root:ldap slapd.pem
+chmod 640 slapd.pem
+popd &>/dev/null
+fi
+
