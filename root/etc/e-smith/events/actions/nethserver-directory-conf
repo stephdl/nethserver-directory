@@ -93,8 +93,18 @@ my @configChangeList = (
 	 olcTLSCertificateFile => $CertificateFile,
 	 olcTLSCertificateKeyFile => $CertificateFile,
 	 olcTLSVerifyClient => 'never',
+	 # dummy value, see delete below:
+	 olcTLSCACertificatePath => '/',
     ]],
 
+    # Refs #1491. Remove attribute, if set.  On CentOS-6.3 nss cert DB
+    # is used by default: fall back to our pem certificate:
+    ['modify',
+     'cn=config',
+     delete => [
+	 olcTLSCACertificatePath
+     ]],
+    
     ['modify',
      'olcDatabase={-1}frontend,cn=config',
      replace => [
@@ -115,7 +125,7 @@ foreach(@configChangeList) {
     my $method = shift @args;
     my $mergeResult = $ldap->$method(@args);
     if($mergeResult->is_error()) {
-	warn 'Error modifying ' . $_->[0] . "\n";
+	warn 'Error modifying ' . $_->[1] . "\n";
 	$errors ++;
     }
 }

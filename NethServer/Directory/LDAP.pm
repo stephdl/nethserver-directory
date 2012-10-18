@@ -7,6 +7,7 @@ use Authen::SASL;
 use esmith::ConfigDB;
 use List::MoreUtils qw(uniq);
 use Net::LDAP::LDIF;
+use Carp;
 
 our @ISA = qw(Net::LDAP);
 
@@ -21,7 +22,7 @@ sub new
     $options{'async'} = 0;    
     $options{'onerror'} = sub { 
 	my $result = shift;
-	warn join(' ', $result->dn(), $result->error_name(), $result->error());
+	carp join(' ', $result->dn(), $result->error_name(), $result->error());
 	return $result;
     };
 
@@ -114,6 +115,8 @@ sub merge
     
     return $message;
 }
+
+
 
 #
 # Load a schema file (LDIF format) if it is missing
