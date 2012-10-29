@@ -6,45 +6,149 @@ use esmith::Build::CreateLinks  qw(:all);
 # Configure the system to rely on slapd 
 # for account and password management
 #-------------------------------------------
-{
 
-    event_templates('nethserver-directory-update', qw(
-	/etc/nsswitch.conf
-	/etc/sysconfig/ldap
-	/etc/openldap/ldap.conf
-	/etc/libuser.conf
-	/etc/pam_ldap.conf
-	/etc/nslcd.conf
-	/etc/pam.d/system-auth-nh
-	/etc/pam.d/password-auth-nh
-        /etc/hosts.allow
-        /etc/hosts.deny
-    ));
+event_templates('nethserver-directory-update', qw(
+    /etc/nsswitch.conf
+    /etc/sysconfig/ldap
+    /etc/openldap/ldap.conf
+    /etc/libuser.conf
+    /etc/pam_ldap.conf
+    /etc/nslcd.conf
+    /etc/pam.d/system-auth-nh
+    /etc/pam.d/password-auth-nh
+    /etc/hosts.allow
+    /etc/hosts.deny
+));
 
-    event_actions('nethserver-directory-update', qw(
-		  initialize-default-databases               00
-		  nethserver-directory-default-certificate   01
-		  nethserver-directory-conf                  20
-		  nethserver-directory-dit-setup             40
-		  nethserver-directory-password-policy       50
-		  runlevel-adjust                            60
-		  firewall-adjust                            62
-	));
+event_actions('nethserver-directory-update', qw(
+	      initialize-default-databases               00
+	      nethserver-directory-default-certificate   01
+	      nethserver-directory-conf                  20
+	      nethserver-directory-dit-setup             40
+	      nethserver-directory-password-policy       50
+	      runlevel-adjust                            60
+	      firewall-adjust                            62
+));
 
-    # Changes to the organization contacts are propagated into LDAP:
-    event_actions('nethserver-base-save',
-		  'nethserver-directory-set-organization' => '50');
+# Changes to the organization contacts are propagated into LDAP:
+event_actions('nethserver-base-save',
+	      'nethserver-directory-set-organization' => '50');
 
-    # Synchronize LDAP database and user password aging on user
-    # create/modify event
-    event_actions($_, 
-		  'nethserver-directory-user-modify' => '25',
-		  'nethserver-directory-password-policy' => '40' ) foreach(qw(
-        user-create 
-        user-modify
-    ));
+# Synchronize LDAP database and user password aging on user
+# create/modify event
+event_actions($_, 
+	      'nethserver-directory-user-modify' => '25',
+	      'nethserver-directory-password-policy' => '40' ) foreach(qw(
+    user-create 
+    user-modify
+));
 
-    # Update user settings when password policy changes:
-    event_actions('password-policy-update',
-		  'nethserver-directory-password-policy' => '30');
-}
+# Update user settings when password policy changes:
+event_actions('password-policy-update',
+	      'nethserver-directory-password-policy' => '30');
+
+
+#--------------------------------------------------
+# password-modify event
+#--------------------------------------------------
+event_actions('password-modify', qw(
+              password-set 25
+              password-cleanup 90
+));
+
+#--------------------------------------------------
+# validate passwords
+#--------------------------------------------------
+validator_actions('password-strength',
+		  'password-strength' => '10');
+
+
+#--------------------------------------------------
+# actions for user-create event
+#--------------------------------------------------
+$event = "user-create";
+event_actions('user-create', qw(
+    user-create-unix 04
+    count-active-user-accounts 25
+    user-group-modify 85
+));
+
+#--------------------------------------------------
+# actions for user-delete event
+#--------------------------------------------------
+event_actions('user-delete', qw(
+	      user-delete-groups 75
+	      user-delete-unix 80
+	      count-active-user-accounts 90
+));
+
+#--------------------------------------------------
+# actions for user-modify event
+#--------------------------------------------------
+event_actions('user-modify', qw(
+              user-modify-unix 15
+              user-group-modify 85
+));
+
+
+
+#--------------------------------------------------
+# actions for user-lock event
+#--------------------------------------------------
+$event = "user-lock";
+event_actions('user-lock', qw(
+              user-lock-unix 15
+              count-active-user-accounts 25
+));
+
+
+#--------------------------------------------------
+# actions for user-lock event
+#--------------------------------------------------
+$event = "user-unlock";
+event_actions('user-unlock', qw(
+              user-unlock-unix 15
+              count-active-user-accounts 25
+));
+
+
+#--------------------------------------------------
+# actions for group-create event
+#--------------------------------------------------
+event_actions('group-create', qw(
+	      group-create-unix 04
+	      group-modify-unix 20
+));
+
+
+#--------------------------------------------------
+# actions for group-delete event
+#--------------------------------------------------
+event_actions('group-delete', qw(
+              group-delete-unix 15
+));
+
+
+#--------------------------------------------------
+# actions for group-modify event
+#--------------------------------------------------
+event_actions('group-modify', qw(
+              group-modify-unix 15
+));
+
+#--------------------------------------------------
+# actions for user-name validator
+#--------------------------------------------------
+validator_actions('user-name', qw(
+		  uniq-account 20
+		  user-length 30
+		  max-users 90
+));
+
+#--------------------------------------------------
+# actions for group-name validator
+#--------------------------------------------------
+validator_actions('group-name', qw(
+		  uniq-account 20
+		  group-length 30
+));
