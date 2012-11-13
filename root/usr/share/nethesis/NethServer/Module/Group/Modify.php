@@ -34,12 +34,16 @@ class Modify extends \Nethgui\Controller\Table\Modify
 
     public function initialize()
     {
-        $groupNameValidator = $this->getPlatform()->createValidator(Validate::USERNAME)->platform('group-name');
+        // The group name must satisfy the USERNAME generic grammar:
+        $groupNameValidator = $this->getPlatform()->createValidator(Validate::USERNAME);
+        if ($this->getIdentifier() === 'create') {
+            $groupNameValidator->platform('group-name');
+        }
 
         $parameterSchema = array(
-            array('groupname', $groupNameValidator, \Nethgui\Controller\Table\Modify::KEY),
-            array('Description', Validate::ANYTHING, \Nethgui\Controller\Table\Modify::FIELD, 'Description'),
-            array('Members', Validate::USERNAME_COLLECTION, \Nethgui\Controller\Table\Modify::FIELD, 'Members', ','),
+            array('groupname', $groupNameValidator, Table::KEY),
+            array('Description', Validate::ANYTHING, Table::FIELD, 'Description'),
+            array('Members', Validate::USERNAME_COLLECTION, Table::FIELD, 'Members', ','),
             array('MembersDatasource', FALSE, array($this, 'provideMembersDatasource')), // this parameter will never be submitted: set an always-failing validator
         );
         
@@ -67,9 +71,27 @@ class Modify extends \Nethgui\Controller\Table\Modify
         return $values;
     }
 
-    public function onParametersSaved($changedParameters)
+    /**
+     * Delete the record after the event has been successfully completed
+     * @param string $key
+     */
+    protected function processDelete($key)
     {
-        if ($this->getIdentifier() === 'update') {
+        $accountDb = $this->getPlatform()->getDatabase('accounts');
+        $accountDb->setType($key, 'group-deleted');
+        $deleteProcess = $this->getPlatform()->signalEvent('group-delete', array($key));
+        if ($deleteProcess->getExitCode() === 0) {
+            parent::processDelete($key);
+        }
+    }
+
+    protected function onParametersSaved($changedParameters)
+    {
+        if ($this->getIdentifier() === 'delete') {
+            // delete case is handled in "processDelete()" method:
+            // signalEvent() is invoked there.
+            return;
+        } elseif ($this->getIdentifier() === 'update') {
             $event = 'modify';
         } else {
             $event = $this->getIdentifier();

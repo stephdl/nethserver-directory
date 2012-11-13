@@ -107,7 +107,7 @@ class Modify extends \Nethgui\Controller\Table\Modify
     }
 
     /**
-     * Do not really delete the $key, but change its type.
+     * Delete the record after the event has been successfully completed
      * @param string $key
      */
     protected function processDelete($key)
