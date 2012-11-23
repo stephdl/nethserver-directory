@@ -55,3 +55,10 @@ $L['User_Tags'] = "utente utenti nome cognome password gruppi indirizzo citta uf
 $L['valid_platform,user-name,uniq-account,3'] = 'Il nome utente `${1}` è già registrato';
 $L['valid_platform,user-name,user-length,1'] = 'Nome troppo lungo: ${reason}';
 
+$L['valid_platform,password-strength,password-strength,3'] = 'Troppo corta';
+$L['valid_platform,password-strength,password-strength,4'] = 'Troppo debole';
+$L['valid_platform,password-strength,password-strength,5'] = 'Manca un numero';
+$L['valid_platform,password-strength,password-strength,6'] = 'Manca una lettera maiuscola';
+$L['valid_platform,password-strength,password-strength,7'] = 'Manca una lettera minuscola';
+$L['valid_platform,password-strength,password-strength,8'] = 'Manca un simbolo';
+
