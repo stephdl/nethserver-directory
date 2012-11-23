@@ -70,16 +70,16 @@
                 this.element.one('nethguiupdateview.' + this.namespace, function () {
                     window.setTimeout(function () {
                         self.leds.position(position);
-                        self._refresh();
+                        self.refresh();
                     }, 1);
                 });
             } else {
-                self._refresh();
+                self.refresh();
             }
             
-            this.element.on('keyup.' + this.namespace, $.proxy(self._refresh, self));        
+            this.element.on('keyup.' + this.namespace, $.proxy(self.refresh, self));
         },
-        _refresh: function () {
+        refresh: function () {
             var self = this;
             var value = this.element.val();
 

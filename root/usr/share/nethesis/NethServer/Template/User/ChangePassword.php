@@ -36,7 +36,7 @@ jQuery(document).ready(function () {
         position: {my: 'right top', at: 'right bottom'},
         leds: " . json_encode($tests) . ",
         id: " . json_encode($view->getUniqueId('passwordStrength')) . ",
-    });
+    }).on('keyup', function () { $('#" . $view->getUniqueId('confirmNewPassword') . "').PasswordStrength('refresh'); });
 
     $('#" . $view->getUniqueId('confirmNewPassword') . "').PasswordStrength({
         position: {my: 'right top', at: 'right bottom'},
