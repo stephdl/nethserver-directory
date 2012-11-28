@@ -1,28 +1,58 @@
-<?php
-/**
- */
+<?php 
 
-$L['Key_label'] = 'User';
-$L['User_Title'] = 'Users';
-$L['ChangePassword_label'] = 'Change password';
-$L['username_label'] = 'User name';
-$L['FirstName_label'] = 'First name';
-$L['LastName_label'] = 'Last name';
-$L['newPassword_label'] = 'New password';
-$L['confirmNewPassword_label'] = 'Repeat new password';
-$L['ChangePassword_label'] = 'Change password';
-$L['Groups_label'] = 'Groups';
-
-$L['BasicInfo_Title'] = "User";
-$L['ExtraInfo_Title'] = "Details";
-$L['Services_Title'] = "Services";
-
-$L['valid_platform,user-name,uniq-account,3'] = 'User name `${1}` has been already registered';
-$L['valid_platform,user-name,user-length,1'] = 'Name is too long: ${reason}';
-
-$L['valid_platform,password-strength,password-strength,3'] = 'Too short';
-$L['valid_platform,password-strength,password-strength,4'] = 'Too weak';
-$L['valid_platform,password-strength,password-strength,5'] = 'Missing a digit';
-$L['valid_platform,password-strength,password-strength,6'] = 'Missing a upper case letter';
-$L['valid_platform,password-strength,password-strength,7'] = 'Missing a lower case letter';
-$L['valid_platform,password-strength,password-strength,8'] = 'Missing a symbol';
+$L['BasicInfo_Title'] = 'User'; 
+$L['Change password for user `${0}`'] = 'Change password for user `${0}`'; 
+$L['City_label'] = 'City'; 
+$L['Company_label'] = 'Company'; 
+$L['Contact informations'] = 'Contact informations'; 
+$L['Create a new user'] = 'Create a new user'; 
+$L['Dept_label'] = 'Office'; 
+$L['ExtraInfo_Title'] = 'Details'; 
+$L['FirstName_label'] = 'First name'; 
+$L['Groups'] = 'Groups'; 
+$L['Groups_label'] = 'Groups'; 
+$L['Key_label'] = 'User'; 
+$L['LastName_label'] = 'Last name'; 
+$L['Lock user `${0}`'] = 'Lock user `${0}`'; 
+$L['Password confirmation does not match'] = 'Password confirmation does not match'; 
+$L['Phone_label'] = 'Phone number'; 
+$L['Proceed with user lock?'] = 'Proceed with user lock?'; 
+$L['Proceed with user unlock?'] = 'Proceed with user unlock?'; 
+$L['Proceed with user `${0}` lock?'] = 'Proceed with user `${0}` lock?'; 
+$L['Proceed with user `${0}` unlock?'] = 'Proceed with user `${0}` unlock?'; 
+$L['Service_Title'] = 'Services'; 
+$L['Street_label'] = 'Address'; 
+$L['Unlock user `${0}`'] = 'Unlock user `${0}`'; 
+$L['Update user `${0}`'] = 'Update user `${0}`'; 
+$L['User_Description'] = 'Manage system users';
+$L['User_Tags'] = 'user name address phone username'; 
+$L['User_Title'] = 'Users'; 
+$L['change-password_dialog_label'] = 'Change password for user %USERNAME'; 
+$L['change-password_label'] = 'Change password'; 
+$L['confirmNewPassword_label'] = 'Repeat new password'; 
+$L['lock_dialog_label'] = 'Lock/Unlock user %USERNAME'; 
+$L['lock_label'] = 'Lock'; 
+$L['newPassword_label'] = 'New password'; 
+$L['password-modify_failure'] = 'Error during password update for user `${1}`'; 
+$L['password-modify_success'] = 'Password updated for user `${1}`'; 
+$L['unlock_label'] = 'Unlock'; 
+$L['update_dialog_label'] = 'Edit user'; 
+$L['user-create_failure'] = 'Error during user "${1}" creation'; 
+$L['user-create_success'] = 'User "${1}" created'; 
+$L['user-delete_failure'] = 'Error during user "${1}" deletion'; 
+$L['user-delete_success'] = 'User "${1}" deleted'; 
+$L['user-lock_failure'] = 'Error during user "${1}" locking'; 
+$L['user-lock_success'] = 'User "${1}" locked'; 
+$L['user-modify_failure'] = 'Error during user "${1}" save'; 
+$L['user-modify_success'] = 'User "${1}" updated'; 
+$L['user-unlock_failure'] = 'Error during user "${1}" unlocking'; 
+$L['user-unlock_success'] = 'User "${1}" locked'; 
+$L['username_label'] = 'User name'; 
+$L['valid_platform,password-strength,password-strength,3'] = 'Too short'; 
+$L['valid_platform,password-strength,password-strength,4'] = 'Too weak'; 
+$L['valid_platform,password-strength,password-strength,5'] = 'Missing a digit'; 
+$L['valid_platform,password-strength,password-strength,6'] = 'Missing a upper case letter'; 
+$L['valid_platform,password-strength,password-strength,7'] = 'Missing a lower case letter'; 
+$L['valid_platform,password-strength,password-strength,8'] = 'Missing a symbol'; 
+$L['valid_platform,user-name,uniq-account,3'] = 'User name `${1}` has been already registered'; 
+$L['valid_platform,user-name,user-length,1'] = 'Name is too long: ${reason}'; 
