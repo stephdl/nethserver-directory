@@ -31,7 +31,7 @@ use File::Path;
 
 my $conf = esmith::ConfigDB->open_ro;
 my $accounts = esmith::AccountsDB->open;
-my $homeDirPrefix = '/home/e-smith/files/users/';
+my $homeDirPrefix = '/var/lib/nethserver/home/';
 
 my $errors = 0;
 
