@@ -40,7 +40,7 @@ echo $tabs;
 $buttons = $view->buttonList($view::BUTTON_SUBMIT | $view::BUTTON_HELP);
 
 if ($view->getModule()->getIdentifier() == 'update') {
-    $buttons->insert($view->button('change-password', $view::BUTTON_LINK));
+    $buttons->insert($view->button('ChangePassword', $view::BUTTON_LINK));
 }
 $buttons->insert($view->button('Cancel', $view::BUTTON_CANCEL));
 
