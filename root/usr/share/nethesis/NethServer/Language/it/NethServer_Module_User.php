@@ -3,13 +3,10 @@
  */
 $L['Key_label'] = 'Utente';
 $L['User_Title'] = 'Utenti';
-$L['change-password_label'] = 'Cambia password';
 $L['username_label'] = 'Nome utente';
 $L['FirstName_label'] = 'Nome';
 $L['LastName_label'] = 'Cognome';
-$L['newPassword_label'] = 'Nuova password';
-$L['confirmNewPassword_label'] = 'Ripeti nuova password';
-$L['Change password for user `${0}`'] = 'Cambia password all\'utente `${0}`';
+
 $L['Groups_label'] = 'Gruppi';
 $L['Groups'] = 'Gruppi';
 $L['update_dialog_label'] = 'Modifica utente';
@@ -36,7 +33,6 @@ $L['user-unlock_failure'] = 'Errore durante lo sblocco dell\'utente "${1}"';
 
 $L['password-modify_success'] = 'La password dell\'utente `${1}` è stata modificata';
 $L['password-modify_failure'] = 'Errore nella modifica della password per l\'utente `${1}`'; 
-$L['Password confirmation does not match'] = 'La password di conferma non corrisponde';
 
 $L['Contact informations'] = 'Informazioni di contatto';
 $L['Company_label'] = 'Società';
@@ -54,11 +50,4 @@ $L['User_Tags'] = "utente utenti nome cognome password gruppi indirizzo citta uf
 
 $L['valid_platform,user-name,uniq-account,3'] = 'Il nome utente `${1}` è già registrato';
 $L['valid_platform,user-name,user-length,1'] = 'Nome troppo lungo: ${reason}';
-
-$L['valid_platform,password-strength,password-strength,3'] = 'Troppo corta';
-$L['valid_platform,password-strength,password-strength,4'] = 'Troppo debole';
-$L['valid_platform,password-strength,password-strength,5'] = 'Manca un numero';
-$L['valid_platform,password-strength,password-strength,6'] = 'Manca una lettera maiuscola';
-$L['valid_platform,password-strength,password-strength,7'] = 'Manca una lettera minuscola';
-$L['valid_platform,password-strength,password-strength,8'] = 'Manca un simbolo';
 
