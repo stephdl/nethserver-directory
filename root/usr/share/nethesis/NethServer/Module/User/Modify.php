@@ -138,10 +138,10 @@ class Modify extends \Nethgui\Controller\Table\Modify
     {
         parent::prepareView($view);
         if (isset($this->parameters['username'])) {
-            $view['change-password'] = $view->getModuleUrl('../change-password/' . $this->parameters['username']);
+            $view['ChangePassword'] = $view->getModuleUrl('../ChangePassword/' . $this->parameters['username']);
             $view['FormAction'] = $view->getModuleUrl($this->parameters['username']);
         } else {
-            $view['change-password'] = '';
+            $view['ChangePassword'] = '';
         }
     }
 
