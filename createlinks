@@ -1,6 +1,8 @@
 #!/usr/bin/perl -w
 
+use strict;
 use esmith::Build::CreateLinks  qw(:all);
+use File::Path;
 
 #-------------------------------------------
 # Configure the system to rely on slapd 
@@ -66,7 +68,6 @@ validator_actions('password-strength',
 #--------------------------------------------------
 # actions for user-create event
 #--------------------------------------------------
-$event = "user-create";
 event_actions('user-create', qw(
     user-create-unix 04
     count-active-user-accounts 25
@@ -95,7 +96,6 @@ event_actions('user-modify', qw(
 #--------------------------------------------------
 # actions for user-lock event
 #--------------------------------------------------
-$event = "user-lock";
 event_actions('user-lock', qw(
               user-lock-unix 15
               count-active-user-accounts 25
@@ -105,7 +105,6 @@ event_actions('user-lock', qw(
 #--------------------------------------------------
 # actions for user-lock event
 #--------------------------------------------------
-$event = "user-unlock";
 event_actions('user-unlock', qw(
               user-unlock-unix 15
               count-active-user-accounts 25
@@ -152,3 +151,10 @@ validator_actions('group-name', qw(
 		  uniq-account 20
 		  group-length 30
 ));
+
+
+# Add warnpassexpire script in cron.daily jobs list -- Refs #1073
+safe_symlink('/sbin/e-smith/warnpassexpire', 'root/etc/cron.daily/warnpassexpire');
+
+# Create empty password-expired event -- Refs #1073
+File::Path::make_path('root/etc/e-smith/events/password-expired');
