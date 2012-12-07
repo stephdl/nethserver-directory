@@ -39,5 +39,5 @@ $L['user-modify_success'] = 'User "${1}" updated';
 $L['user-unlock_failure'] = 'Error during user "${1}" unlocking'; 
 $L['user-unlock_success'] = 'User "${1}" locked'; 
 $L['username_label'] = 'User name'; 
-$L['valid_platform,user-name,uniq-account,3'] = 'User name `${1}` has been already registered'; 
-$L['valid_platform,user-name,user-length,1'] = 'Name is too long: ${reason}'; 
+$L['valid_platform,user-create,uniq-account,3'] = 'User name `${1}` has been already registered';
+$L['valid_platform,user-create,user-length,1'] = 'Name is too long: ${reason}';

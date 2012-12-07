@@ -35,9 +35,12 @@ class Modify extends \Nethgui\Controller\Table\Modify
     public function initialize()
     {
         // The group name must satisfy the USERNAME generic grammar:
-        $groupNameValidator = $this->getPlatform()->createValidator(Validate::USERNAME);
-        if ($this->getIdentifier() === 'create') {
-            $groupNameValidator->platform('group-name');
+        if ($this->getIdentifier() === 'delete') {
+            $groupNameValidator = $this->createValidator(Validate::USERNAME)->platform('group-delete');
+        } elseif ($this->getIdentifier() === 'create') {
+            $groupNameValidator = $this->createValidator(Validate::USERNAME)->platform('group-create');
+        } else {
+            $groupNameValidator = FALSE;
         }
 
         $parameterSchema = array(

@@ -12,5 +12,5 @@ $L['Members_label'] = 'Membri';
 $L['PlugService_Title'] = 'Servizi'; 
 $L['Update group `${0}`'] = 'Modifica gruppo `${0}`'; 
 $L['groupname_label'] = 'Nome gruppo'; 
-$L['valid_platform,group-name,group-length,1'] = 'Nome troppo lungo: ${reason}'; 
-$L['valid_platform,group-name,uniq-account,3'] = 'Il nome di gruppo `${1}` è già registrato'; 
+$L['valid_platform,group-create,group-length,1'] = 'Nome troppo lungo: ${reason}';
+$L['valid_platform,group-create,uniq-account,3'] = 'Il nome di gruppo `${1}` è già registrato';

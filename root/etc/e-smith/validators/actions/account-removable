@@ -1,0 +1,25 @@
+#!/usr/bin/perl -w
+
+use strict;
+use esmith::AccountsDB;
+
+=head2 account-removable
+
+Exit code 4, if account is not removable
+
+0 on SUCCESS
+
+=cut
+
+my $accountName = shift || die("Missing account name argument");
+my $db = esmith::AccountsDB->open_ro() or die("Could not open AccountsDB");
+    
+my $removable = $db->get_prop($accountName, 'Removable');
+
+if( defined $removable && $removable eq 'no')  {
+    printf "Account `%s` is not removable\n", $accountName;
+    exit 4;
+}
+
+exit 0;
+

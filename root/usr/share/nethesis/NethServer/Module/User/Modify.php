@@ -43,14 +43,17 @@ class Modify extends \Nethgui\Controller\Table\Modify
             $this->setViewTemplate('Nethgui\Template\Table\Delete');
         }
 
-        $usernameValidator = $this->getPlatform()->createValidator(Validate::USERNAME);
-
-        if ($this->getIdentifier() === 'create') {
-            $usernameValidator = $usernameValidator->platform('user-name');
+        // The user name must satisfy the USERNAME generic grammar:
+        if ($this->getIdentifier() === 'delete') {
+            $userNameValidator = $this->createValidator(Validate::USERNAME)->platform('user-delete');
+        } elseif ($this->getIdentifier() === 'create') {
+            $userNameValidator = $this->createValidator(Validate::USERNAME)->platform('user-create');
+        } else {
+            $userNameValidator = FALSE;
         }
 
         $parameterSchema = array(
-            array('username', $usernameValidator, Table::KEY),
+            array('username', $userNameValidator, Table::KEY),
             array('PasswordSet', Validate::ANYTHING, Table::FIELD),
             array('FirstName', Validate::NOTEMPTY, Table::FIELD),
             array('LastName', Validate::NOTEMPTY, Table::FIELD),

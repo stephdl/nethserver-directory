@@ -74,12 +74,12 @@ class User extends \Nethgui\Controller\TableController
     public function prepareViewForColumnActions(\Nethgui\Controller\Table\Read $action, \Nethgui\View\ViewInterface $view, $key, $values, &$rowMetadata)
     {
         $cellView = $action->prepareViewForColumnActions($view, $key, $values, $rowMetadata);
-        
+
         $killList = array();
-        
+
         $state = isset($values['__state']) ? $values['__state'] : 'new';
-        
-        switch($state) {
+
+        switch ($state) {
             case 'new':
                 $killList[] = 'lock';
                 $killList[] = 'unlock';
@@ -92,11 +92,10 @@ class User extends \Nethgui\Controller\TableController
                 break;
             default:
                 break;
-                
         }
-        
+
         foreach (array_keys(iterator_to_array($cellView)) as $key) {
-            if ( in_array($key, $killList)) {
+            if (in_array($key, $killList)) {
                 unset($cellView[$key]);
             }
         }

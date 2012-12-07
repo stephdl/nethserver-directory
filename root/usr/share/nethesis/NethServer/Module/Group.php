@@ -20,8 +20,6 @@ namespace NethServer\Module;
  * along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-use Nethgui\System\PlatformInterface as Validate;
-
 /**
  * Manage system user groups
  * 
@@ -53,6 +51,25 @@ class Group extends \Nethgui\Controller\TableController
         ;
 
         parent::initialize();
+    }
+
+    /**
+     * Honour "Removable=no" prop.
+     *
+     * @param \Nethgui\Controller\Table\Read $action
+     * @param \Nethgui\View\ViewInterface $view
+     * @param type $key
+     * @param type $values
+     * @param type $rowMetadata
+     * @return type
+     */
+    public function prepareViewForColumnActions(\Nethgui\Controller\Table\Read $action, \Nethgui\View\ViewInterface $view, $key, $values, &$rowMetadata)
+    {
+        $cellView = $action->prepareViewForColumnActions($view, $key, $values, $rowMetadata);
+        if (isset($values['Removable']) && $values['Removable'] === 'no') {
+            unset($cellView['delete']);
+        }
+        return $cellView;
     }
 
 }
