@@ -150,6 +150,7 @@ validator_actions('user-name', qw(
 validator_actions('group-name', qw(
 		  uniq-account 20
 		  group-length 30
+                  reserved-group 40
 ));
 
 

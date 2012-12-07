@@ -1,0 +1,12 @@
+#!/usr/bin/perl -w
+
+#
+# NethServer
+#
+# Copyright (C) 2012 Nethesis srl
+#
+
+my $groupName = shift or die('Missing group name argument');
+my $isReserved = $groupName =~ m/^(shared|domadmins|domusers|domguests)$/;
+
+exit($isReserved ? 3 : 0);
