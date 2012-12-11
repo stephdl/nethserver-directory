@@ -52,12 +52,7 @@ source /etc/nethserver/rpm_hook_functions
 event_queue add %{name}-update
 
 
+
+
 %changelog
-* Wed Jun 13 2012 Davide Principi <davide.principi@nethesis.it> - 6.104.X.2.nh
-- Relocated NethServer/ perl directory with perl_vendorlib macro
 
-* Wed Mar  7 2012 Davide Principi <davide.principi@nethesis.it> - 6.1.0-1.nh.git8910329a
-- Fixed dependencies and conformance to NethServer Development Conventions
-
-* Fri Mar  2 2012 Davide Principi <davide.principi@nethesis.it> - 1.0.0-3.nh
-- Initial build
