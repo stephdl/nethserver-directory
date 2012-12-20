@@ -16,7 +16,7 @@ Requires: nethserver-base
 Requires: mailx, postfix, anacron
 
 BuildRequires: perl
-BuildRequires: nethserver-devtools >= 6.133.4
+BuildRequires: nethserver-devtools
 BuildRequires: gettext
 
 %description
