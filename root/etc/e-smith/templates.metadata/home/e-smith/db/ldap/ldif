@@ -1,2 +1,0 @@
-TEMPLATE_PATH="/var/lib/nethserver/db/ldap/ldif"
-OUTPUT_FILENAME=use esmith::ConfigDB; my $d = esmith::ConfigDB->open_ro->get('DomainName')->value; "/var/lib/nethserver/db/ldap/$d.ldif"
