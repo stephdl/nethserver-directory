@@ -23,6 +23,12 @@ use strict;
 use esmith::Build::CreateLinks  qw(:all);
 use File::Path;
 
+# slapd PKI certificate
+my @certificates = (qw(
+                /etc/pki/tls/certs/slapd.pem
+));
+
+
 #-------------------------------------------
 # Configure the system to rely on slapd 
 # for account and password management
@@ -39,11 +45,10 @@ event_templates('nethserver-directory-update', qw(
     /etc/pam.d/password-auth-nh
     /etc/hosts.allow
     /etc/hosts.deny
-));
+), @certificates);
 
 event_actions('nethserver-directory-update', qw(
 	      initialize-default-databases               00
-	      nethserver-directory-default-certificate   01
 	      nethserver-directory-conf                  20
 	      nethserver-directory-dit-setup             40
 	      nethserver-directory-password-policy       50
@@ -191,3 +196,11 @@ event_actions('password-expired', qw(
 # Add warnpassexpire script in cron.daily jobs list -- Refs #1073
 safe_symlink('/sbin/e-smith/warnpassexpire', 'root/etc/cron.daily/warnpassexpire');
 
+#
+# certificate-update event
+#
+event_templates('certificate-update', @certificates);
+
+event_services('certificate-update', qw(
+               slapd restart
+));
