@@ -51,8 +51,11 @@ rm -rf $RPM_BUILD_ROOT
 source /etc/nethserver/rpm_hook_functions
 event_queue add %{name}-update
 
-
-
-
 %changelog
+* Thu Jan 31 2013 Davide Principi <davide.principi@nethesis.it> - 1.1.0-1.ns6
+- NethServer/Directory.pm: added configServiceAccount() method. 
+  Refs #1639 -- LDAP service accounts
+- Configure default certificate management. 
+  Refs #1632
+
 
