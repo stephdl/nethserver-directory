@@ -21,7 +21,6 @@
 #
 
 use NethServer::Directory;
-use NethServer::Directory::LDAP;
 use NethServer::Service;
 use Net::LDAP;
 
@@ -40,7 +39,7 @@ foreach my $daemon (qw(slapd nslcd)) {
 #
 # Connect to LDAP server
 #
-my $ldap = NethServer::Directory::LDAP->new or die("Cannot connect LDAP server");
+my $ldap = NethServer::Directory->new or die("Cannot connect LDAP server");
 my $NslcdUid = getpwnam('nslcd');
 my $LdapInternalSuffix = NethServer::Directory::getInternalSuffix(); 
 my $LdapDomainSuffix = NethServer::Directory::getDomainSuffix(); 
@@ -78,25 +77,6 @@ if ($olcModuleSearch->count() == 0) {
     }
 }
 
-my @aclList = (qq{to attrs=userPassword
-                  by dn.exact="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" manage
-                  by dn.exact="cn=pam,$LdapInternalSuffix" peername.path="/var/run/ldapi" write
-                  by dn.exact="cn=libuser,$LdapInternalSuffix" peername.ip="127.0.0.1" write
-                  by anonymous auth
-                  by self write
-                  by * none
-             },
-	     qq{to *
-                  by dn.exact="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" manage
-                  by dn.exact="cn=pam,$LdapInternalSuffix" peername.path="/var/run/ldapi" write
-                  by dn.exact="cn=libuser,$LdapInternalSuffix" peername.ip="127.0.0.1" write
-                  by users ssf=71 read
-                  by * none
-             });
-
-# Compact the ACL removing any extra whitespace (should not harm):
-s/\s+/ /g foreach(@aclList);
-
 #
 # Replace some global settings, access control setup:
 #
@@ -129,13 +109,6 @@ my @configChangeList = (
      'olcDatabase={-1}frontend,cn=config',
      replace => [
 	 olcPasswordHash => '{CRYPT}'
-     ]],
-
-    ['modify',
-     'olcDatabase={2}bdb,cn=config',
-     replace => [
-	 olcSuffix => $LdapInternalSuffix,
-	 olcAccess => [@aclList],
      ]]
     );
 
@@ -149,6 +122,29 @@ foreach(@configChangeList) {
 	$errors ++;
     }
 }
+
+#
+# Configure default ACLs:
+#
+
+$ldap->enforceAccessDirective(
+    join(' ',
+	 qq(by dn.exact="cn=pam,$LdapInternalSuffix" peername.path="/var/run/ldapi" write),
+	 qq(by dn.exact="cn=libuser,$LdapInternalSuffix" peername.ip="127.0.0.1" write),
+	 qq(by users ssf=71 read),
+	 qq(by * none)),
+    '*'
+    );
+
+$ldap->enforceAccessDirective(
+    join(' ',    
+	 qq(by dn.exact="cn=pam,$LdapInternalSuffix" peername.path="/var/run/ldapi" write),
+	 qq(by dn.exact="cn=libuser,$LdapInternalSuffix" peername.ip="127.0.0.1" write),
+	 qq(by anonymous auth),
+	 qq(by self write),
+	 qq(by * none)), 
+    'userPassword'
+    );
 
 #
 # Enable relay overlay 

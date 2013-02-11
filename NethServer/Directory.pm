@@ -95,7 +95,7 @@ sub addAccessDirective ($$)
 
     my $ldap = NethServer::Directory->new();
     
-    return $ldap->_addAccessDirective($directive, $field);   
+    return $ldap->enforceAccessDirective($directive, $field);   
 }
 
 =head2 new
@@ -144,22 +144,27 @@ sub configServiceAccount
     my $self = shift;
     my $account = shift;
     my $access = shift;
+    my $from = shift;
     my $errors = 0;
 
     my $internalSuffix = getInternalSuffix();
 
-    my $ldapAccessDirective = 'by dn.exact="cn=' . $account . ','. $internalSuffix . '" peername.ip="127.0.0.1" ';
+    if( ! $from) {
+	$from = 'peername.ip="127.0.0.1"';
+    }
+
+    my $ldapAccessDirective = 'by dn.exact="cn=' . $account . ','. $internalSuffix . '" ' . $from . ' ' ;
 
     if($access & PASSWORD_WRITE) {
-	$self->_addAccessDirective($ldapAccessDirective . 'write', 'userPassword') 
+	$self->enforceAccessDirective($ldapAccessDirective . 'write', 'userPassword') 
     } elsif($access & PASSWORD_READ) {
-	$self->_addAccessDirective($ldapAccessDirective . 'read', 'userPassword') 
+	$self->enforceAccessDirective($ldapAccessDirective . 'read', 'userPassword') 
     }
 
     if($access & FIELDS_WRITE) {
-	$self->_addAccessDirective($ldapAccessDirective . 'write', '*') 
+	$self->enforceAccessDirective($ldapAccessDirective . 'write', '*') 
     } elsif($access & FIELDS_READ) {
-	$self->_addAccessDirective($ldapAccessDirective . 'read', '*') 
+	$self->enforceAccessDirective($ldapAccessDirective . 'read', '*') 
     }
 
     # Create cn=account,dc=directory,dc=nh ldap entry
@@ -191,7 +196,7 @@ sub configServiceAccount
 #
 # Modify LDAP ACLs. see slapd.access(5)
 #
-sub _addAccessDirective
+sub enforceAccessDirective
 {
     my $self = shift;
     my $directive = shift;
@@ -217,23 +222,34 @@ sub _addAccessDirective
 
 	my @olcAccess = $configEntry->get_value('olcAccess');
        
+	# Remove multivalued attribute sort order:
+	foreach(@olcAccess) {
+	    s/^\{\d+\}to /to /;
+	}
+
 	if($field ne '*') {
 	    $field = 'attrs=' . $field;
 	}
 
-	foreach(@olcAccess) {
-	    if (m/to \Q$field\E/s && ! m/\Q$directive\E/) {
-		s/ manage/ manage $directive/;
+	if(grep(m/to \Q$field\E/s, @olcAccess)) {
+	    # Tweak existing $field ACL:
+	    foreach(@olcAccess) {
+		if (m/to \Q$field\E/s && ! m/\Q$directive\E/) {
+		    s/ manage/ manage $directive/;
+		}
 	    }
+	} else {
+	    # Prepend a new olcAccess entry specific $field,
+	    # initializing root access to "manage":
+	    unshift @olcAccess, (qq(to $field by dn.exact="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" manage ) . $directive);
 	}
-	
+
+	# CLEANUP: use Data::Dumper;
 	# print Dumper([@olcAccess]);	    
-	my $message = $self->modify(
-	    $configEntry->dn(),
-	    replace => [
-		olcAccess => [@olcAccess]
-	    ]);
-	
+	my $message = $configEntry->replace(
+	    olcAccess => \@olcAccess
+	    )->update($self);
+       	
 	if($message->is_error()) {    	
 	    carp '';
 	} else {
