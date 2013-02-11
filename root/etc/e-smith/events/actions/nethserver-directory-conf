@@ -109,6 +109,12 @@ my @configChangeList = (
      'olcDatabase={-1}frontend,cn=config',
      replace => [
 	 olcPasswordHash => '{CRYPT}'
+     ]],
+
+    ['modify',
+     'olcDatabase={2}bdb,cn=config',
+     replace => [
+         olcSuffix => $LdapInternalSuffix,
      ]]
     );
 

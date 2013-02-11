@@ -22,7 +22,7 @@ use NethServer::Directory;
 use NethServer::Directory::LDAP;
 use esmith::ConfigDB;
 
-my $ldap = NethServer::Directory::LDAP->new;
+my $ldap = NethServer::Directory->new;
 my $configDb = esmith::ConfigDB->open_ro();
 my %OrganizationContact = $configDb->get('OrganizationContact')->props or {'Company' => 'Not Set'};
 my $internalSuffix = NethServer::Directory::getInternalSuffix();
