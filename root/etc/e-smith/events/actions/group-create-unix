@@ -79,7 +79,7 @@ system(
     "-u", $uid,
     "-g", $gid,
     '--surname', $groupName,
-    '-d', '/home/e-smith',
+    '-M',
     '-s', '/bin/false',
     $groupName
     ) == 0 or die "Failed to create user $groupName.\n";
