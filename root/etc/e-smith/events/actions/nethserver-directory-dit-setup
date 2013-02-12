@@ -18,61 +18,76 @@
 # You should have received a copy of the GNU General Public License
 # along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
 #
+
 use NethServer::Directory;
-use NethServer::Directory::LDAP;
 use esmith::ConfigDB;
 
 my $ldap = NethServer::Directory->new;
-my $configDb = esmith::ConfigDB->open_ro();
+my $configDb = esmith::ConfigDB->open_ro() || die('Could not open ConfigDB');
 my %OrganizationContact = $configDb->get('OrganizationContact')->props or {'Company' => 'Not Set'};
-my $internalSuffix = NethServer::Directory::getInternalSuffix();
+my $LdapInternalSuffix = NethServer::Directory::getInternalSuffix();
+
+#
+# DIT (Directory Information Tree) setup 
+#
+my %OrganizationContact = $configDb->get('OrganizationContact')->props or {'Company' => 'Not Set'};
 
 my @entries = (
-    [ $internalSuffix,
+    [ $LdapInternalSuffix,
       attrs => [
 	  objectClass => ['top', 'dcObject', 'organization'],
 	  dc => 'directory',
 	  o => $OrganizationContact{Company},
       ] ],    
-    [ 'ou=People,' . $internalSuffix,
+    [ 'ou=People,' . $LdapInternalSuffix,
       attrs => [
 	  objectClass => ['top', 'organizationalUnit'],
 	  ou => 'People',
       ] ],
-    [ 'ou=Groups,' . $internalSuffix,
+    [ 'ou=Groups,' . $LdapInternalSuffix,
       attrs => [
 	  objectClass => ['top', 'organizationalUnit'],
 	  ou => 'Groups',
-      ] ],
-
-    #
-    # authentication services accounts (replace with SASL whenever possible):
-    #
-
-    [ 'cn=libuser,' . $internalSuffix,
-      attrs => [
-	  objectClass => ['device', 'simpleSecurityObject'],
-	  cn => 'libuser',
-	  userPassword => NethServer::Directory::getUserPassword('libuser', 1),
-	  description => "libuser account management"
-      ] ],
-    [ 'cn=pam,' . $internalSuffix,
-      attrs => [
-	  objectClass => ['device', 'simpleSecurityObject'],
-	  cn => 'pam',
-	  userPassword => NethServer::Directory::getUserPassword('pam', 1),
-	  description => "pam_ldap module - root password service operations"
-      ] ],
+      ] ]
     );
 
-my $exitCode = 0;
 
 foreach(@entries) {
     my $message = $ldap->merge(@{$_});
     if($message->is_error) {
 	warn 'Error modifying `' . @{$_}[0] . '`: ' . join(" ", $message->code, $message->error_name());
-	$exitCode ++;
+	$errors++;
     }
 }
 
-exit($exitCode);
+#
+# Create pam and libuser internal accounts (ACL permissions are
+# configured below).
+#
+$ldap->configServiceAccount('libuser') || $errors++;
+$ldap->configServiceAccount('pam') || $errors++;
+
+#
+# Configure default ACLs:
+#
+$ldap->enforceAccessDirective(
+    join(' ',
+	 qq(by dn.exact="cn=pam,$LdapInternalSuffix" peername.path="/var/run/ldapi" write),
+	 qq(by dn.exact="cn=libuser,$LdapInternalSuffix" peername.ip="127.0.0.1" write),
+	 qq(by users ssf=71 read),
+	 qq(by * none)),
+    '*'
+    ) || $errors++;
+
+$ldap->enforceAccessDirective(
+    join(' ',    
+	 qq(by dn.exact="cn=pam,$LdapInternalSuffix" peername.path="/var/run/ldapi" write),
+	 qq(by dn.exact="cn=libuser,$LdapInternalSuffix" peername.ip="127.0.0.1" write),
+	 qq(by anonymous auth),
+	 qq(by self write),
+	 qq(by * none)), 
+    'userPassword'
+    ) || $errors++;
+
+
+exit($errors);

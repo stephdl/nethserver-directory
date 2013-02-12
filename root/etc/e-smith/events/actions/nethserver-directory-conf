@@ -22,7 +22,6 @@
 
 use NethServer::Directory;
 use NethServer::Service;
-use Net::LDAP;
 
 #
 # Ensure daemons are running
@@ -128,29 +127,6 @@ foreach(@configChangeList) {
 	$errors ++;
     }
 }
-
-#
-# Configure default ACLs:
-#
-
-$ldap->enforceAccessDirective(
-    join(' ',
-	 qq(by dn.exact="cn=pam,$LdapInternalSuffix" peername.path="/var/run/ldapi" write),
-	 qq(by dn.exact="cn=libuser,$LdapInternalSuffix" peername.ip="127.0.0.1" write),
-	 qq(by users ssf=71 read),
-	 qq(by * none)),
-    '*'
-    );
-
-$ldap->enforceAccessDirective(
-    join(' ',    
-	 qq(by dn.exact="cn=pam,$LdapInternalSuffix" peername.path="/var/run/ldapi" write),
-	 qq(by dn.exact="cn=libuser,$LdapInternalSuffix" peername.ip="127.0.0.1" write),
-	 qq(by anonymous auth),
-	 qq(by self write),
-	 qq(by * none)), 
-    'userPassword'
-    );
 
 #
 # Enable relay overlay 
