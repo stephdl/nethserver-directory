@@ -241,7 +241,10 @@ sub enforceAccessDirective
 	} else {
 	    # Prepend a new olcAccess entry specific $field,
 	    # initializing root access to "manage":
-	    unshift @olcAccess, (qq(to $field by dn.exact="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" manage ) . $directive);
+	    unshift @olcAccess, join(' ', 
+				     qq(to $field by dn.exact="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" manage),
+				     $directive
+		);
 	}
 
 	# CLEANUP: use Data::Dumper;

@@ -211,6 +211,12 @@ sub addOverlayRwm
     }
 }
 
+# Force root access initialization for userPassword and other
+# attributes.  This grant is required by
+# nethserver-directory-dit-setup to modify BDB backend contents:
+$ldap->enforceAccessDirective('', '*');
+$ldap->enforceAccessDirective('', 'userPassword');
+
 
 NethServer::Service::manage_add('nethserver-directory',
 				'slapd',
