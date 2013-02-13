@@ -5,7 +5,7 @@ Release: @@RELEASE@@
 License: GPL
 Source0: %{name}-%{version}.tar.gz
 BuildArch: noarch
-URL: http://dev.nethesis.it/projects/%{name}
+URL: %{url_prefix}/%{name} 
 
 Requires: pam_ldap >= 185-5.el6, nss-pam-ldapd >= 0.7.5-3.el6
 Requires: openldap, openldap-clients, openldap-servers
