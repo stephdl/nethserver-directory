@@ -7,6 +7,7 @@ Source0: %{name}-%{version}.tar.gz
 BuildArch: noarch
 URL: %{url_prefix}/%{name} 
 
+Requires: coreutils
 Requires: pam_ldap >= 185-5.el6, nss-pam-ldapd >= 0.7.5-3.el6
 Requires: openldap, openldap-clients, openldap-servers
 Requires: perl-LDAP = 1:0.40-2.nh

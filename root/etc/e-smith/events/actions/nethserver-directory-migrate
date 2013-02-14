@@ -1,0 +1,270 @@
+#!/usr/bin/perl
+
+#
+# Copyright (C) 2013 Nethesis S.r.l.
+# http://www.nethesis.it - support@nethesis.it
+# 
+# This script is part of NethServer.
+# 
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+# 
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+use esmith::DB::db;
+use esmith::event;
+use User::pwent;
+use User::grent;
+use File::stat;
+use Data::Dumper;
+use File::Temp;
+use Carp;
+
+
+#
+# parseShadow() -- read secret hashes from $shadowFile and returns a
+#                  perl hash reference, indexed by user name. 
+#                  Each entry is a shadow structure; see man shadow(3).
+#
+sub parseShadow($)
+{
+    my $shadowFile = shift;
+
+    my %h = ();
+    my @fields = (qw(
+       namp
+       pwdp
+       lstchg
+       min
+       max
+       warn
+       inact
+       expire
+       flag
+    ));
+   
+    if( ! open(FH, '<', $shadowFile)) {
+	carp "[ERROR] Could not open $shadowFile for reading!";
+	return {};
+    }
+
+    while(<FH>) {
+	chomp($_);
+	my %entry = ();
+	@entry{@fields} = split(':', $_, 9);
+	$h{$entry{namp}} = \%entry;
+    }
+
+    close(FH);
+
+    return \%h;
+}
+
+#
+# migrateDir() -- copy or Move $sourceDir contents to $destDir:
+#
+sub migrateDir($$)
+{
+    my $s = shift; # source directory
+    my $d = shift; # dest directory
+
+    # trim ending slashes:
+    $s =~ s|/+$||;
+    $d =~ s|/+$||;
+
+    if ( ! -d $s) {
+	carp "[ERROR] Source $s is not a directory!\n";
+	return 0;
+    }
+
+    if ( ! -d $d) {
+	carp "[ERROR] Destination $d is not a directory!\n";
+	return 0;
+    }
+
+    my $statS = stat($s);
+
+    if ( ! $statS) {
+	carp "[ERROR] Could not stat() source directory $s!\n";
+	return 0;
+    }
+
+    my $statD = stat($d);
+
+    if ( ! $statD) {
+	carp "[ERROR] Could not stat() destination directory $d!\n";
+	return 0;
+    }
+
+    my @sources = grep { $_ !~ m|/\.\.?$| } glob($s . '/{.*,*}');
+
+    # Check if directories are on the same filesystem:
+    if ($statS->dev == $statD->dev) {
+	# Use MOVE
+	print "Moving to $d:\n";
+	system('mv', '-t', $d, @sources);
+    } else {
+	# Use COPY
+	print "Copying to $d:\n";
+	system('cp', '-t', $d, @sources);
+    }
+
+    if($? != 0) {
+	return 0; # failure
+    }
+
+    return 1; # success
+}
+
+my $event = shift;
+my $sourceDir = shift;
+my $esmithDbDir = '/home/e-smith/db';
+my $errors = 0;
+
+if( ! -d $sourceDir) {
+    die("Could not find $sourceDir");
+}
+
+my $srcAccountsDb = esmith::DB::db->open_ro(join('', $sourceDir, $esmithDbDir, '/accounts')) || die("Could not open source accounts database in $sourceDir \n");
+
+my $dstAccountsDb = esmith::DB::db->open('accounts') || die("Could not open destination account db\n");
+
+my @users = $srcAccountsDb->get_all_by_prop(type=>'user');
+my @groups = $srcAccountsDb->get_all_by_prop(type=>'group');
+my $shadowDb = parseShadow($sourceDir . '/etc/shadow');
+
+# Import these props for user records:
+my @userProps = (qw(
+   City
+   Company
+   Dept
+   FirstName
+   LastName
+   Phone
+   Street
+   Uid
+));
+
+# Import these props for group records:
+my @groupProps = (qw(
+   Gid
+   Uid
+   Description
+   Members
+));
+
+
+#
+# Users migration:
+# 
+foreach my $srcUser (@users) {
+    my $userName = $srcUser->key;
+
+    # skip an existing user account:
+    if($dstAccountsDb->get($userName)) {
+	warn "[WARNING] User $userName is already registered in accounts DB\n";
+	next;
+    }
+
+    if(getpwnam($userName)) {
+	warn "[WARNING] User $userName exists in passwd DB\n";
+	next;
+    }
+
+    if(getpwuid($srcUser->prop('Uid'))) {
+	warn "[WARNING] UID " . $srcUser->prop('Uid') . " exists in passwd DB\n";
+	next;
+    }
+
+    #
+    # copy @userProps to a new record in dstAccountDb:
+    #
+    foreach (@userProps) {
+	$dstAccountsDb->set_prop($userName, $_, $srcUser->prop($_), type => 'user');
+    }
+
+    #
+    # USER-CREATE event
+    #
+    if( ! esmith::event::event_signal('user-create', $userName)) {
+	warn "[WARNING] user-create event failed for user " . $userName . "\n";
+	$errors ++;
+    }
+
+    #
+    # Check passwd DB entry:
+    #
+    my $userPwEnt = getpwnam($userName);
+    if ( ! $userPwEnt) {
+	warn "[ERROR]: user $userName is missing in passwd DB! User creation failed?\n";
+	$errors ++;
+	next;
+    }
+
+    #
+    # Set user password to a random value.
+    #
+    my $passwordFile = File::Temp->new(UNLINK => 0);
+    my $randomPassword = `dd if=/dev/urandom bs=16 count=1 2>/dev/null | /usr/bin/base64`;
+    print $passwordFile $randomPassword;
+    if( ! esmith::event::event_signal('password-modify', $userName, $passwordFile)) {
+	warn "[WARNING] password-modify event failed for user " . $userName . "\n";
+	$errors ++;
+    }
+    close($passwordFile);
+
+    #
+    # Set userPassword attribute in LDAP restoring shadow(3) pwdp field
+    #
+    if($shadowDb->{$userName} && $shadowDb->{$userName}->{pwdp}) {
+	open(PH, '|-', '/usr/sbin/lpasswd -f 0 ' . $userName . ' >/dev/null 2>&1');
+	print PH $randomPassword . "\n";
+	print PH $shadowDb->{$userName}->{pwdp};
+	if( ! close(PH)) {
+	    warn "[WARNING] failed to restore password for user $userName\n";	    
+	}
+    }
+
+    #
+    # Migrate user's home directory
+    #
+    my $homeDir = $userPwEnt->dir;
+    if( ! migrateDir($sourceDir . '/home/e-smith/files/users/' . $userName, $homeDir) ) {
+	warn "[WARNING]: User $userName: home directory migration failed!\n";
+    }
+
+    
+}
+
+#
+# Groups migration
+#
+foreach my $srcGroup (@groups) {
+    # skip an existing group account:
+    if($dstAccountsDb->get($srcGroup->key)) {
+	next;
+    }
+
+    # copy @groupProps to a new record in dstAccountDb:
+    foreach (@groupProps) {
+	$dstAccountsDb->set_prop($srcGroup->key, $_, $srcGroup->prop($_), type => 'group');
+    }
+
+    if( ! esmith::event::event_signal('group-create', $srcGroup->key)) {
+	warn "Failed to migrate group " . $srcGroup->key . "\n";
+	$errors ++;
+    }
+
+
+}
+
+exit($errors > 0 ? 1 : 0);
