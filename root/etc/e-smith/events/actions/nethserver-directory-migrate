@@ -28,7 +28,7 @@ use File::stat;
 use Data::Dumper;
 use File::Temp;
 use Carp;
-
+use strict;
 
 #
 # parseShadow() -- read secret hashes from $shadowFile and returns a
