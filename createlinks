@@ -204,3 +204,11 @@ event_templates('certificate-update', @certificates);
 event_services('certificate-update', qw(
                slapd restart
 ));
+
+
+#
+# migration-import event (refs #1655)
+#
+event_actions('migration-import', qw(
+    nethserver-directory-migrate 20
+));
