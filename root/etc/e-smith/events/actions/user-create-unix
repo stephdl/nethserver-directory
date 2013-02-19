@@ -60,12 +60,12 @@ if( ! $uid) {
     $uid = $accounts->get_next_uid;
     $acct->set_prop('Uid', $uid);
 }
+
 my $gid = $acct->prop('Gid') || $uid;
 my $shell = $acct->prop('Shell') || '/usr/libexec/openssh/sftp-server';
 
 if( ! -x $shell) {
     warn "Given shell `$shell` is not executable";
-    $errors ++;
     $shell = '/bin/false';
 }
 
