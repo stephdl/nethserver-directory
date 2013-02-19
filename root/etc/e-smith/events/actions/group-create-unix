@@ -48,9 +48,9 @@ unless ($group && $group->prop('type') eq 'group')
 }
 
 my $lock = undef;
-my $gid;
-unless ($gid = $group->prop('Gid'))
-{
+my $gid = $group->prop('Gid');
+
+if ( ! $gid) {
     use esmith::lockfile;
 
     $lock = esmith::lockfile::LockFileOrWait("/var/lib/nethserver/db/accounts");
@@ -61,8 +61,8 @@ unless ($gid = $group->prop('Gid'))
 	$group->set_prop('Uid', $gid);
     }
 }
-my $uid = $group->prop('Uid');
 
+my $uid = $group->prop('Uid') || $gid;
 
 # Create the user's unique group first
 system(
