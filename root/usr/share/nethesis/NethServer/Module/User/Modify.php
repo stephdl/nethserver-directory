@@ -54,7 +54,6 @@ class Modify extends \Nethgui\Controller\Table\Modify
 
         $parameterSchema = array(
             array('username', $userNameValidator, Table::KEY),
-            array('PasswordSet', Validate::ANYTHING, Table::FIELD),
             array('FirstName', Validate::NOTEMPTY, Table::FIELD),
             array('LastName', Validate::NOTEMPTY, Table::FIELD),
             array('Company', Validate::ANYTHING, Table::FIELD),
