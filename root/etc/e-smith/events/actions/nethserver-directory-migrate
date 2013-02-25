@@ -27,6 +27,7 @@ use User::grent;
 use File::stat;
 use Data::Dumper;
 use File::Temp;
+use NethServer::Migrate qw(migrateDir);
 use Carp;
 use strict;
 
@@ -67,62 +68,6 @@ sub parseShadow($)
     close(FH);
 
     return \%h;
-}
-
-#
-# migrateDir() -- copy or Move $sourceDir contents to $destDir:
-#
-sub migrateDir($$)
-{
-    my $s = shift; # source directory
-    my $d = shift; # dest directory
-
-    # trim ending slashes:
-    $s =~ s|/+$||;
-    $d =~ s|/+$||;
-
-    if ( ! -d $s) {
-	carp "[ERROR] Source $s is not a directory!\n";
-	return 0;
-    }
-
-    if ( ! -d $d) {
-	carp "[ERROR] Destination $d is not a directory!\n";
-	return 0;
-    }
-
-    my $statS = stat($s);
-
-    if ( ! $statS) {
-	carp "[ERROR] Could not stat() source directory $s!\n";
-	return 0;
-    }
-
-    my $statD = stat($d);
-
-    if ( ! $statD) {
-	carp "[ERROR] Could not stat() destination directory $d!\n";
-	return 0;
-    }
-
-    my @sources = grep { $_ !~ m|/\.\.?$| } glob($s . '/{.*,*}');
-
-    # Check if directories are on the same filesystem:
-    if ($statS->dev == $statD->dev) {
-	# Use MOVE
-	print "Moving to $d:\n";
-	system('mv', '-t', $d, @sources);
-    } else {
-	# Use COPY
-	print "Copying to $d:\n";
-	system('cp', '-t', $d, @sources);
-    }
-
-    if($? != 0) {
-	return 0; # failure
-    }
-
-    return 1; # success
 }
 
 my $event = shift;
