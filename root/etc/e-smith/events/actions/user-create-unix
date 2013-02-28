@@ -61,6 +61,9 @@ if( ! $uid) {
     $acct->set_prop('Uid', $uid);
 }
 
+#
+# If Gid prop is missing assume gid is equal to uid
+#
 my $gid = $acct->prop('Gid') || $uid;
 my $shell = $acct->prop('Shell') || '/usr/libexec/openssh/sftp-server';
 
