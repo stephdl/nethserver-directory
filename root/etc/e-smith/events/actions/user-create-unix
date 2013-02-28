@@ -35,11 +35,12 @@ my $errors = 0;
 my $event = shift;
 my $userName = shift;
 
-die "username argument missing" unless defined ($userName);
+if( ! defined ($userName)) {
+    die "Username argument missing\n";
+}
 
 my $acct = $accounts->get($userName);
-unless (defined $acct and $acct->prop('type') eq "user")
-{
+if( ! (defined $acct and $acct->prop('type') eq "user")) {
     die "Account $userName is not a user account; create user failed.\n";
 }
 
