@@ -22,6 +22,7 @@
 
 use strict;
 use esmith::AccountsDB;
+use User::grent;
 
 my $accounts = esmith::AccountsDB->open
     or die "Could not open accounts DB";
@@ -40,40 +41,71 @@ if( ! ($group && $group->prop('type') eq 'group')) {
     die "Account $groupName is not a group account; create group failed.\n";
 }
 
+#
+# Use low gid for builtin groups
+#
+my $isBuiltinGroup = (defined $group->prop('Removable') && $group->prop('Removable') eq 'no')
+    || (defined $group->prop('Builtin') && $group->prop('Builtin') eq 'yes');
+
 my $lock = undef;
 my $gid = $group->prop('Gid');
+my $uid;
 
-if ( ! $gid) {
+if ( ! $isBuiltinGroup && ! $gid) {
+    # Create a new gid from our sequence for standard group accounts:
     use esmith::lockfile;
     $lock = esmith::lockfile::LockFileOrWait("/var/lib/nethserver/db/accounts");
     $gid = $accounts->get_next_uid;
     $group->set_prop('Gid', $gid);
 }
 
-#
-# If Uid prop is missing assume uid is equal to gid
-#
-my $uid = $group->prop('Uid') || $gid;
-
-# Create the user's unique group first
+# Create the user's unique group first, so we can set the gid
+# explicitly on the corresponding user account.
 system(
-	"/usr/sbin/lgroupadd",
-	"-g", $gid,
-	$groupName
-    ) == 0 or die "Failed to create group $groupName.\n";
+    "/usr/sbin/lgroupadd",
+    $gid ? ("-g", $gid) : (),
+    $groupName
+    ) == 0 or die "Failed to create group $groupName.\n";   
 
-# Now create the dummy user account. NOTE: `--surname` triggers
-# inetOrgPerson schema in ldapEntry and is required for
-# nethserver-directory to work.
+# If gid is not known at this point we chose to allocate it by
+# libuser. Retrieve it from group database and store in group
+# record, to persist gids over backups and migrations:
+if( ! $gid) {
+    my $groupEntry = getgrnam($groupName);
+    if( ! $groupEntry) {
+	warn("Could not retrieve $groupName from group database\n");
+    } else {
+	$gid = $groupEntry->gid;
+	$group->set_prop('Gid', $gid);    
+    }
+}
+
+# If Uid prop is missing assume uid is equal to gid.
+$uid = $group->prop('Uid') || $gid;
+
+#
+# Create the dummy user account.
+#  
+# NOTES: 
+#
+# 1. `--surname` triggers inetOrgPerson schema in ldapEntry and is
+#    required for nethserver-directory to work.
+#
+# 2. If uid is missing use gid
+#
+# 3. For builtin groups the user and primary group uid/gid is allocated
+#    according to /etc/login.defs (uid and gid are undef)
+#
 system(
     "/usr/sbin/luseradd",
-    "-u", $uid,
-    "-g", $gid,
+    $uid ? ("-u", $uid) : (),
+    $gid ? ("-g", $gid) : (),
     '--surname', $groupName,
     '-M',
     '-s', '/bin/false',
     $groupName
-    ) == 0 or die "Failed to create user $groupName.\n";
+    ) == 0 or die "Failed to create group user account $groupName.\n";
+
 
 # Release lock if we have one
 $lock && esmith::lockfile::UnlockFile($lock);
