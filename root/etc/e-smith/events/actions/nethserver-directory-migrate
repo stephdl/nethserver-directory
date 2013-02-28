@@ -160,6 +160,7 @@ foreach my $srcUser (@users) {
     #
     my $passwordFile = File::Temp->new(UNLINK => 0);
     my $randomPassword = `dd if=/dev/urandom bs=16 count=1 2>/dev/null | /usr/bin/base64`;
+    chomp($randomPassword);
     print $passwordFile $randomPassword;
     if( ! esmith::event::event_signal('password-modify', $userName, $passwordFile)) {
 	warn "[WARNING] password-modify event failed for user " . $userName . "\n";
