@@ -27,48 +27,10 @@ use User::grent;
 use File::stat;
 use Data::Dumper;
 use File::Temp;
-use NethServer::Migrate qw(migrateDir);
+use NethServer::Migrate qw(migrateDir parseShadow);
 use Carp;
 use strict;
 
-#
-# parseShadow() -- read secret hashes from $shadowFile and returns a
-#                  perl hash reference, indexed by user name. 
-#                  Each entry is a shadow structure; see man shadow(3).
-#
-sub parseShadow($)
-{
-    my $shadowFile = shift;
-
-    my %h = ();
-    my @fields = (qw(
-       namp
-       pwdp
-       lstchg
-       min
-       max
-       warn
-       inact
-       expire
-       flag
-    ));
-   
-    if( ! open(FH, '<', $shadowFile)) {
-	carp "[ERROR] Could not open $shadowFile for reading!";
-	return {};
-    }
-
-    while(<FH>) {
-	chomp($_);
-	my %entry = ();
-	@entry{@fields} = split(':', $_, 9);
-	$h{$entry{namp}} = \%entry;
-    }
-
-    close(FH);
-
-    return \%h;
-}
 
 my $event = shift;
 my $sourceDir = shift;
