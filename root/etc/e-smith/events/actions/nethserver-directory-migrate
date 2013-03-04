@@ -27,6 +27,8 @@ use User::grent;
 use File::stat;
 use Data::Dumper;
 use File::Temp;
+use File::Path;
+use POSIX qw(strftime);
 use NethServer::Migrate qw(migrateDir parseShadow);
 use Carp;
 use strict;
@@ -36,6 +38,7 @@ my $event = shift;
 my $sourceDir = shift;
 my $esmithDbDir = '/home/e-smith/db';
 my $errors = 0;
+my $timestamp = strftime "%Y%m%d%H%M%S", @{localtime()};
 
 if( ! -d $sourceDir) {
     die("Could not find $sourceDir");
@@ -173,6 +176,32 @@ foreach my $srcGroup (@groups) {
     }
 
 
+}
+
+#
+# root's home migration:
+#
+File::Path::make_path('/var/lib/nethserver/migration/root', { mode => 0700});
+if(migrateDir($sourceDir . '/root', '/var/lib/nethserver/migration/root')) {
+    symlink '../var/lib/nethserver/migration/root', '/root/root-migration-' . $timestamp;
+} else {
+    $errors++;
+}
+
+#
+# admin's data migration:
+#
+File::Path::make_path('/var/lib/nethserver/migration/admin', { mode => 0700});
+if(migrateDir($sourceDir . '/home/e-smith/files/users/admin', '/var/lib/nethserver/migration/admin')) {
+    symlink '../var/lib/nethserver/migration/admin', '/root/admin-migration-' . $timestamp;
+} else {
+    $errors++;
+}
+
+
+if($errors > 0) {
+    warn "[WARNING] $errors error(s) occurred in $0 action\n";
+    exit(1);
 }
 
 exit($errors > 0 ? 1 : 0);
