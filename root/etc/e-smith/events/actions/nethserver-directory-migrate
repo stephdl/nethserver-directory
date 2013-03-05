@@ -179,16 +179,6 @@ foreach my $srcGroup (@groups) {
 }
 
 #
-# root's home migration:
-#
-File::Path::make_path('/var/lib/nethserver/migration/root', { mode => 0700});
-if(migrateDir($sourceDir . '/root', '/var/lib/nethserver/migration/root')) {
-    symlink '../var/lib/nethserver/migration/root', '/root/root-migration-' . $timestamp;
-} else {
-    $errors++;
-}
-
-#
 # admin's data migration:
 #
 File::Path::make_path('/var/lib/nethserver/migration/admin', { mode => 0700});
