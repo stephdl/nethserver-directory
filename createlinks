@@ -201,8 +201,9 @@ safe_symlink('/sbin/e-smith/warnpassexpire', 'root/etc/cron.daily/warnpassexpire
 #
 event_templates('certificate-update', @certificates);
 
-event_services('certificate-update', qw(
-               slapd restart
+# Use a specific action to restart slapd and nslcd correctly. See #1722:
+event_actions('certificate-update', qw(
+              nethserver-directory-restart 95        
 ));
 
 
