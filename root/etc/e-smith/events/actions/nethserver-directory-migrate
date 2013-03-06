@@ -120,29 +120,35 @@ foreach my $srcUser (@users) {
 	next;
     }
 
-    #
-    # Set user password to a random value.
-    #
-    my $passwordFile = File::Temp->new(UNLINK => 0);
-    my $randomPassword = `dd if=/dev/urandom bs=16 count=1 2>/dev/null | /usr/bin/base64`;
-    chomp($randomPassword);
-    print $passwordFile $randomPassword;
-    if( ! esmith::event::event_signal('password-modify', $userName, $passwordFile)) {
-	warn "[WARNING] password-modify event failed for user " . $userName . "\n";
-	$errors ++;
-    }
-    close($passwordFile);
+    if($srcUser->prop('PasswordSet') eq 'yes')  {
 
-    #
-    # Set userPassword attribute in LDAP restoring shadow(3) pwdp field
-    #
-    if($shadowDb->{$userName} && $shadowDb->{$userName}->{pwdp}) {
-	open(PH, '|-', '/usr/sbin/lpasswd -f 0 ' . $userName . ' >/dev/null 2>&1');
-	print PH $randomPassword . "\n";
-	print PH $shadowDb->{$userName}->{pwdp};
-	if( ! close(PH)) {
-	    warn "[WARNING] failed to restore password for user $userName\n";	    
+	#
+	# Set user password to a random value.
+	#
+	my $passwordFile = File::Temp->new(UNLINK => 0);
+	my $randomPassword = `dd if=/dev/urandom bs=16 count=1 2>/dev/null | /usr/bin/base64`;
+	chomp($randomPassword);
+	print $passwordFile $randomPassword;
+	if( ! esmith::event::event_signal('password-modify', $userName, $passwordFile)) {
+	    warn "[WARNING] password-modify event failed for user " . $userName . "\n";
+	    $errors ++;
 	}
+	close($passwordFile);
+
+	#
+	# Replace userPassword attribute in LDAP, using shadow(3) pwdp field
+	#
+	if($shadowDb->{$userName} && $shadowDb->{$userName}->{pwdp}) {
+	    open(PH, '|-', '/usr/sbin/lpasswd -f 0 ' . $userName . ' >/dev/null 2>&1');
+	    print PH $randomPassword . "\n";
+	    print PH $shadowDb->{$userName}->{pwdp};
+	    if( ! close(PH)) {
+		warn "[WARNING] failed to restore password for user $userName\n";	    
+	    }
+	}
+
+    } else {
+	warn "[INFO] skipped password setting for disabled user $userName\n";
     }
 
     #
