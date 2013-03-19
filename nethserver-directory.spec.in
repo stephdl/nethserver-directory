@@ -53,6 +53,9 @@ source /etc/nethserver/rpm_hook_functions
 event_queue add %{name}-update
 
 %changelog
+* Tue Mar 19 2013 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.1.2-1.ns6
+- Add migration code
+
 * Mon Feb 11 2013 Davide Principi <davide.principi@nethesis.it> - 1.1.1-1.ns6
 - Disable default group home directory cretion. 
   Refs #1638
