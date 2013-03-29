@@ -1,0 +1,19 @@
+{
+    #
+    # 20directory
+    #
+
+    #
+    # Creation through ldap-exclusive:
+    #
+    $conf->{'defaults'}->{'create_modules'} = 'ldap';
+
+    #
+    # Other actions, append ldap:
+    #
+    if($conf->{'defaults'}->{'modules'} !~ /ldap/) {
+	$conf->{'defaults'}->{'modules'} .= ' ldap';
+    }
+
+    '';	
+}

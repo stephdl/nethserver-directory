@@ -1,11 +1,19 @@
 {
-use NethServer::Directory;
+    #
+    # 40ldap
+    #
+    use NethServer::Directory;
+
+    $conf->{ldap} = {qw(
+        server ldap://127.0.0.1
+        bindtype simple
+        groupBranch ou=Groups
+        userBranch ou=People
+    ),
+	basedn => NethServer::Directory::getInternalSuffix(),
+	binddn => "cn=libuser," . NethServer::Directory::getInternalSuffix(),       
+	password => NethServer::Directory::getUserPassword('libuser')
+    };
+
+    '';
 }
-[ldap]
-server = ldap://127.0.0.1
-basedn = { NethServer::Directory::getInternalSuffix() }
-binddn = cn=libuser,{ NethServer::Directory::getInternalSuffix() }
-password = { NethServer::Directory::getUserPassword('libuser') }
-bindtype = simple
-groupBranch = ou=Groups
-userBranch = ou=People
