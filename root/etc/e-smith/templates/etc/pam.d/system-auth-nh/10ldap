@@ -1,0 +1,30 @@
+{
+    #
+    # 10ldap nethserver-directory PAM configuration for ldap
+    # 
+
+    $conf->{'auth'} = &$add_rule(
+	$conf->{'auth'}, 
+	'sufficient pam_ldap.so use_first_pass',
+	qr'pam_deny\.so'
+	);
+
+    $conf->{'account'} = &$add_rule(
+	$conf->{'account'}, 
+	'[default=bad success=ok user_unknown=ignore] pam_ldap.so',
+	qr'pam_permit\.so'
+	);
+
+    $conf->{'password'} = &$add_rule(
+	$conf->{'password'}, 
+	'sufficient pam_ldap.so use_authtok', 
+	qr'pam_deny\.so'
+	);
+      
+    $conf->{'session'} = &$add_rule(
+	$conf->{'session'}, 
+	'optional pam_ldap.so'
+	);
+    
+    '';
+}
