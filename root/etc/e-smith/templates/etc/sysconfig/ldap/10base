@@ -1,5 +1,10 @@
 # Options of slapd (see man slapd)
-#SLAPD_OPTIONS=
+{
+    my $loglevel = $slapd{'LogLevel'} || "0";
+    $loglevel = "-s $loglevel";
+    my $options = $slapd{'options'} || "";
+    $OUT.="SLAPD_OPTIONS=\"$loglevel $options\"";
+}
 
 # options of slurpd (see man slurpd)
 #   
