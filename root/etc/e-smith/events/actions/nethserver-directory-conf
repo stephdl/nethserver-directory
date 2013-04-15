@@ -217,9 +217,4 @@ sub addOverlayRwm
 $ldap->enforceAccessDirective('', '*');
 $ldap->enforceAccessDirective('', 'userPassword');
 
-
-NethServer::Service::manage_add('nethserver-directory',
-				'slapd',
-				'nslcd');
-
 exit($errors == 0 ? 0 : 1);
