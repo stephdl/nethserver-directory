@@ -49,8 +49,6 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %post
-source /etc/nethserver/rpm_hook_functions
-event_queue add %{name}-update
 
 %changelog
 * Tue Mar 19 2013 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.1.2-1.ns6
