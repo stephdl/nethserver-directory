@@ -211,3 +211,12 @@ event_actions('certificate-update', qw(
 event_actions('migration-import', qw(
     nethserver-directory-migrate 20
 ));
+
+
+#
+# hostname-modify event (refs #1010)
+#
+event_actions('hostname-modify', qw(
+    nethserver-directory-conf   20
+    nethserver-directory-restart 21
+));

@@ -158,7 +158,14 @@ if($olcRelaySearch->count() == 0) {
     } else {
 	addOverlayRwm();
     }
-} 
+} else {    
+    # The relay has been configured, we need to update the domain
+    # suffix only:
+    $ldap->modify($olcRelaySearch->shift_entry()->dn(),
+		  replace => {
+		      olcSuffix => $LdapDomainSuffix
+		  });		 
+}
 
 
 #
