@@ -201,34 +201,33 @@ sub enforceAccessDirective
     my $self = shift;
     my $directive = shift;
     my $field = shift;
+    my $errors = 0;
 
     my $internalSuffix = getInternalSuffix();
+    my $domainSuffix = getDomainSuffix();
 
     my $configSearch = $self->search(
 	base => "cn=config",
-	filter => "(&(olcSuffix=$internalSuffix)(objectClass=olcBdbConfig))",
-	sizelimit => 1,
+	filter => "(&(objectClass=olcDatabaseConfig)(|(olcSuffix=$internalSuffix)(olcSuffix=$domainSuffix)))",
+	sizelimit => 2,
 	scope => 'one'
 	);
 
     if($configSearch->is_error()) {	
-	carp "Cannot find `$internalSuffix` subtree";
+	carp "[ERROR] Configuration databases search error.\n";
 	return 0;
     }
-    
-    my $configEntry = $configSearch->pop_entry();
-    
-    if($configEntry) {
 
+    if($field ne '*') {
+	$field = 'attrs=' . $field;
+    }
+   
+    foreach my $configEntry ($configSearch->entries()) {    
 	my @olcAccess = $configEntry->get_value('olcAccess');
        
 	# Remove multivalued attribute sort order:
 	foreach(@olcAccess) {
 	    s/^\{\d+\}to /to /;
-	}
-
-	if($field ne '*') {
-	    $field = 'attrs=' . $field;
 	}
 
 	if(grep(m/to \Q$field\E/s, @olcAccess)) {
@@ -254,14 +253,12 @@ sub enforceAccessDirective
 	    )->update($self);
        	
 	if($message->is_error()) {    	
-	    carp '';
-	} else {
-	    # success
-	    return 1;
-	}
-    } 
+	    carp 'Failed to update ' . $configEntry->dn . "\n";
+	    $errors ++;
+	}     
+    }
     
-    return 0;
+    return ($errors == 0 ? 1 : 0);
 
 }
 

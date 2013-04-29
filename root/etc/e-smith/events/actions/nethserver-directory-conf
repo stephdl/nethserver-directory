@@ -146,11 +146,7 @@ if($olcRelaySearch->count() == 0) {
 	attrs => [
 	    objectClass => ['olcDatabaseConfig', 'olcRelayConfig', 'olcConfig'],
 	    olcDatabase => 'relay',
-	    olcSuffix => $LdapDomainSuffix,
-	    olcAccess => [
-		"to attrs=userPassword by anonymous ssf=71 auth by self ssf=71 read", 
-		"to * by users read"
-	    ]
+	    olcSuffix => $LdapDomainSuffix
 	]);
     if($ldapAddRelayResponse->is_error) {	
 	warn 'Error adding "relay" backend database: ' . $ldapAddRelayResponse->error;
