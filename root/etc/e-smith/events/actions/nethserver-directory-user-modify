@@ -23,10 +23,9 @@
 
 use strict;
 use esmith::AccountsDB;
+use esmith::ConfigDB;
 use NethServer::Directory::LDAP;
 use NethServer::Directory;
-
-my $accountsDb = esmith::AccountsDB->open_ro;
 
 my $event = shift;
 my $userName = shift;
@@ -34,6 +33,10 @@ my $errors = 0;
 
 die "Username argument missing." unless defined ($userName);
 
+my $accountsDb = esmith::AccountsDB->open_ro || die("Could not open AccountsDB.\n");
+my $configDb = esmith::ConfigDB->open_ro || die("Could not open ConfigDB.\n");
+
+my $contactRecord = $configDb->get('OrganizationContact');
 my $account = $accountsDb->get($userName);
 
 die "Account $userName not found.\n" unless defined $account;
@@ -53,12 +56,12 @@ my $ldap = NethServer::Directory::LDAP->new;
 
 my @attrs = ();
 my $dn = "uid=$userName,ou=People,$base";
-# my $email = $account->prop('EmailAlias') || "$userName\@$domain";
-my $phone = $account->prop('Phone') || '';
-my $company = $account->prop('Company') || '';
-my $dept = $account->prop('Dept') || '';
-my $city = $account->prop('City') || '';
-my $street = $account->prop('Street') || '';
+
+my $phone = $account->prop('PhoneNumber') || $contactRecord->prop('PhoneNumber') || '';
+my $company = $account->prop('Company') || $contactRecord->prop('Company') || '';
+my $dept = $account->prop('Department') || $contactRecord->prop('Department') || '';
+my $city = $account->prop('City') || $contactRecord->prop('City') || '';
+my $street = $account->prop('Street') || $contactRecord->prop('Street') || '';
 
 # push @attrs, (mail => $email);
 push @attrs, (telephoneNumber => $phone) unless $phone =~ /^\s*$/;

@@ -57,10 +57,10 @@ class Modify extends \Nethgui\Controller\Table\Modify
             array('FirstName', Validate::NOTEMPTY, Table::FIELD),
             array('LastName', Validate::NOTEMPTY, Table::FIELD),
             array('Company', Validate::ANYTHING, Table::FIELD),
-            array('Dept', Validate::ANYTHING, Table::FIELD),
+            array('Department', Validate::ANYTHING, Table::FIELD),
             array('Street', Validate::ANYTHING, Table::FIELD),
             array('City', Validate::ANYTHING, Table::FIELD),
-            array('Phone', Validate::ANYTHING, Table::FIELD),
+            array('PhoneNumber', Validate::ANYTHING, Table::FIELD),
         );
 
         $this->setSchema($parameterSchema);
@@ -80,31 +80,6 @@ class Modify extends \Nethgui\Controller\Table\Modify
          */
         if ($request->isMutation() && $request->hasParameter('Groups')) {
             $this->parameters['Groups'] = $request->getParameter('Groups');
-        } elseif ( ! $request->isMutation()) {
-            $this->checkOrganizationDefaults();
-        }
-    }
-
-    /**
-     * Read default values from OrganizationContact settings 
-     * for each missing "organization" field value
-     */
-    private function checkOrganizationDefaults()
-    {
-        $organizationContact = $this->getPlatform()->getDatabase('configuration')->getKey('OrganizationContact');
-
-        $keyMap = array(
-            'Company' => 'Company',
-            'Dept' => 'Department',
-            'Street' => 'Street',
-            'City' => 'City',
-            'Phone' => 'PhoneNumber'
-        );
-
-        foreach ($keyMap as $key => $defaultKey) {
-            if (empty($this->parameters[$key])) {
-                $this->parameters[$key] = $organizationContact[$defaultKey];
-            }
         }
     }
 
@@ -139,6 +114,7 @@ class Modify extends \Nethgui\Controller\Table\Modify
     public function prepareView(\Nethgui\View\ViewInterface $view)
     {
         parent::prepareView($view);
+        $view['contactDefaults'] = $this->getPlatform()->getDatabase('configuration')->getKey('OrganizationContact');
         if (isset($this->parameters['username'])) {
             $view['ChangePassword'] = $view->getModuleUrl('../ChangePassword/' . $this->parameters['username']);
             $view['FormAction'] = $view->getModuleUrl($this->parameters['username']);

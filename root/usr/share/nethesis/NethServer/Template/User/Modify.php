@@ -23,11 +23,11 @@ $basicInfo = $view->panel()
 
 $infoTab = $view->panel()
     ->setAttribute('title', $T('ExtraInfo_Title'))
-    ->insert($view->textInput('Company'))
-    ->insert($view->textInput('Dept'))
-    ->insert($view->textInput('Street'))
-    ->insert($view->textInput('City'))
-    ->insert($view->textInput('Phone'));
+    ->insert($view->textInput('Company')->setAttribute('placeholder', $view['contactDefaults']['Company']))
+    ->insert($view->textInput('Department')->setAttribute('placeholder', $view['contactDefaults']['Department']))
+    ->insert($view->textInput('Street')->setAttribute('placeholder', $view['contactDefaults']['Street']))
+    ->insert($view->textInput('City')->setAttribute('placeholder', $view['contactDefaults']['City']))
+    ->insert($view->textInput('PhoneNumber')->setAttribute('placeholder', $view['contactDefaults']['PhoneNumber']));
 
 $tabs = $view->tabs()
     ->insert($basicInfo)
