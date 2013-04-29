@@ -20,7 +20,8 @@
 # along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-use esmith::DB::db;
+use esmith::AccountsDB;
+use esmith::ConfigDB;
 use esmith::event;
 use User::pwent;
 use User::grent;
@@ -44,9 +45,20 @@ if( ! -d $sourceDir) {
     die("Could not find $sourceDir");
 }
 
-my $srcAccountsDb = esmith::DB::db->open_ro(join('', $sourceDir, $esmithDbDir, '/accounts')) || die("Could not open source accounts database in $sourceDir \n");
+my $srcAccountsDb = esmith::AccountsDB->open_ro(join('', $sourceDir, $esmithDbDir, '/accounts')) || die("Could not open source accounts database in $sourceDir \n");
 
-my $dstAccountsDb = esmith::DB::db->open('accounts') || die("Could not open destination account db\n");
+my $dstAccountsDb = esmith::AccountsDB->open('accounts') || die("Could not open destination account db\n");
+
+my $contactRecord = (esmith::ConfigDB->open_ro() || die("Could not open ConfiDB\n"))->get('OrganizationContact');
+
+my %OrganizationContact = (
+    'City' => 'Default City', 
+    'Company' => 'Default Company', 
+    'Department' => 'Default Department', 
+    'PhoneNumber' => '', 
+    'Street' => 'Default Street', 
+    $contactRecord ? $contactRecord->props : ()
+    );
 
 my @users = $srcAccountsDb->get_all_by_prop(type=>'user');
 my @groups = $srcAccountsDb->get_all_by_prop(type=>'group');
@@ -54,14 +66,18 @@ my $shadowDb = parseShadow($sourceDir . '/etc/shadow');
 
 # Import these props for user records:
 my @userProps = (qw(
-   City
-   Company
-   Dept
    FirstName
    LastName
-   Phone
-   Street
    Uid
+));
+
+# Map old user prop to new names:
+my %contactInfoMap = (qw(
+   City City
+   Company Company
+   Dept Department
+   Phone PhoneNumber
+   Street Street
 ));
 
 # Import these props for group records:
@@ -100,6 +116,18 @@ foreach my $srcUser (@users) {
     #
     foreach (@userProps) {
 	$dstAccountsDb->set_prop($userName, $_, $srcUser->prop($_), type => 'user');
+    }
+
+    #
+    # copy contact info only if differs from defaults defined by
+    # OrganizationContact (#1853)
+    #
+    foreach (keys %contactInfoMap) {
+	my $k = $contactInfoMap{$_};
+       
+	my $v = ($srcUser->prop($_) 
+		 && $srcUser->prop($_) ne ($OrganizationContact{$k})) ? $srcUser->prop($_) : '';	    
+	$dstAccountsDb->set_prop($userName, $k, $v, type => 'user');
     }
 
     #
