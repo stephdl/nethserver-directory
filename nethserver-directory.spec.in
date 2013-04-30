@@ -48,9 +48,15 @@ rm -rf $RPM_BUILD_ROOT
 %files -f %{name}-%{version}-%{release}-filelist
 %defattr(-,root,root)
 
-%post
-
 %changelog
+* Tue Apr 30 2013 Davide Principi <davide.principi@nethesis.it> - 1.2.0-1.ns6
+- Full automatic package install/upgrade/uninstall support #1870
+- Default user Organization Contact props #1853
+- Fixed samba password hash disclosure: slapd ACLs applied on both BDB and rwm frontends #1894
+- hostname-modify event support #1010
+- Change default slapd log level to 0  #1835
+- /etc/pam.d/system-auth-nh, /etc/nsswitch.conf: use new template format #1746
+
 * Tue Mar 19 2013 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.1.2-1.ns6
 - Add migration code
 
