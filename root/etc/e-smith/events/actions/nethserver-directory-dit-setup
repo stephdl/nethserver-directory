@@ -32,6 +32,8 @@ my $LdapInternalSuffix = NethServer::Directory::getInternalSuffix();
 #
 my %OrganizationContact = $configDb->get('OrganizationContact')->props or {'Company' => 'Not Set'};
 
+my $nsstestId = getNssTestId();
+
 my @entries = (
     [ $LdapInternalSuffix,
       attrs => [
@@ -48,7 +50,36 @@ my @entries = (
       attrs => [
 	  objectClass => ['top', 'organizationalUnit'],
 	  ou => 'Groups',
-      ] ]
+      ] ],
+    [ 'uid=nsstest,ou=People,' . $LdapInternalSuffix,
+      attrs => [
+	  gidNumber => $nsstestId,
+	  uidNumber => $nsstestId,
+	  qw(
+	    objectClass posixAccount
+	    objectClass shadowAccount
+	    objectClass account
+	    uid nsstest
+	    cn nsstest
+	    shadowMin 0
+	    shadowMax 99999
+	    shadowWarning 7
+	    shadowExpire -1
+	    shadowInactive -1
+	    userPassword {CRYPT}!!
+	    gecos LibNss_Test_Account
+	    shadowLastChange 0
+	    shadowFlag -1
+	    homeDirectory /var/lib/nethserver/home/nsstest
+	    loginShell /bin/false
+      )] ],
+    [ 'cn=nsstest,ou=Groups,' . $LdapInternalSuffix,
+      attrs => [
+	  gidNumber => $nsstestId,	  
+	  qw(
+	    objectClass posixGroup
+	    cn nsstest
+    )] ],
     );
 
 
@@ -91,3 +122,16 @@ $ldap->enforceAccessDirective(
 
 
 exit($errors);
+
+
+
+sub getNssTestId()
+{
+    my $entry = $ldap->getUser('nsstest');
+
+    if( ! $entry ) {
+	return $ldap->getFreeId();
+    }
+
+    return $entry->get_value('uidNumber');
+}

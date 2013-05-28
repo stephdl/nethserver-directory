@@ -262,4 +262,46 @@ sub enforceAccessDirective
 
 }
 
+=head2 getFreeId($base)
+
+Search the passwd and group databases for the first free user-id,
+starting from $base. 
+
+The returned id is a free uid, gid couple.
+
+=cut
+sub getFreeId($)
+{
+    # This function is derived from esmith::AccountsDB::get_next_uid()
+
+    my $self = shift;
+    my $base = shift;
+
+    if( ! $base ) {
+	$base = 500;
+    }
+
+    my $id = $base;
+    my $maxid = 1 << 31;
+
+    setpwent();
+    setgrent();
+
+    # Increment $id counter until a free value is found for both
+    # passwd and group databases:
+    while (getpwuid $id || getgrgid $id)
+    {
+	if ($id == $maxid) {
+	    die "[ERROR] All userids in use!";
+	}
+        $id++;
+    }
+
+    endpwent();
+    endgrent();
+
+    return $id;    
+
+}
+
 1;
