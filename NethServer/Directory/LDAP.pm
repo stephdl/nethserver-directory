@@ -22,7 +22,9 @@ sub new
     $options{'async'} = 0;    
     $options{'onerror'} = sub { 
 	my $result = shift;
-	carp join(' ', $result->dn(), $result->error_name(), $result->error());
+	if($result->code() != Net::LDAP::Constant::LDAP_NO_SUCH_OBJECT) {
+	    carp join(' ', $result->dn(), $result->error_name(), $result->error());
+	}
 	return $result;
     };
 
