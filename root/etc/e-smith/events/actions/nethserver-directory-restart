@@ -28,7 +28,7 @@ NethServer::Service::stop('slapd');
 NethServer::Service::start('slapd') or die("[ERROR] Could not start sladp\n");
 NethServer::Service::start('nslcd') or die("[ERROR] Could not start nslcd\n");
 
-if(system('/usr/bin/id shared &>/dev/null') == 0) {
+if(system('/usr/bin/id nsstest &>/dev/null') == 0) {
     warn "[INFO] nethserver-directory: libnss test OK.\n";
 } else {
     warn "[ERROR] nethserver-directory: libnss test FAILED.\n";
