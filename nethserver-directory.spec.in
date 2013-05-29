@@ -49,6 +49,9 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %changelog
+* Wed May 29 2013 Davide Principi <davide.principi@nethesis.it> - 1.2.1-1.ns6
+- Create nsstest user and group in LDAP. Bugfix #1981
+
 * Tue Apr 30 2013 Davide Principi <davide.principi@nethesis.it> - 1.2.0-1.ns6
 - Full automatic package install/upgrade/uninstall support #1870
 - Default user Organization Contact props #1853
