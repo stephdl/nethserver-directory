@@ -220,3 +220,19 @@ event_actions('hostname-modify', qw(
     nethserver-directory-conf   20
     nethserver-directory-restart 21
 ));
+
+#
+# actions for pre-backup-config event
+#
+event_actions('pre-backup-config', qw(
+    nethserver-directory-dump-ldap   20
+));
+
+
+#
+# actions for post-restore-config event
+#
+event_actions('post-restore-config', qw(
+    nethserver-directory-restore-ldap   20
+));
+

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+/sbin/service slapd stop
+/bin/find /var/lib/ldap/ -name \*.bdb -exec rm -f '{}' \;
+rm -rf /etc/openldap/slapd.d/
+mkdir -p /etc/openldap/slapd.d/
+/usr/sbin/slapadd -F /etc/openldap/slapd.d -n 0 -l /var/lib/nethserver/backup/ldap-config.ldif
+chown -R ldap:ldap /etc/openldap/slapd.d
+/bin/su - ldap -s /bin/bash -c "/usr/sbin/slapadd -F /etc/openldap/slapd.d -n 2 -l /var/lib/nethserver/backup/ldap-data.ldif"

@@ -1,0 +1,3 @@
+#!/bin/bash
+/usr/sbin/slapcat -n 0 -l /var/lib/nethserver/backup/ldap-config.ldif &>/dev/null
+/usr/sbin/slapcat -n 2 -l /var/lib/nethserver/backup/ldap-data.ldif &>/dev/null
