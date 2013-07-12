@@ -22,7 +22,7 @@
 use NethServer::Directory;
 use esmith::ConfigDB;
 
-my $ldap = NethServer::Directory->new;
+my $ldap = NethServer::Directory->new or die("No LDAP connection");
 my $configDb = esmith::ConfigDB->open_ro() || die('Could not open ConfigDB');
 my %OrganizationContact = $configDb->get('OrganizationContact')->props or {'Company' => 'Not Set'};
 my $LdapInternalSuffix = NethServer::Directory::getInternalSuffix();
@@ -53,12 +53,8 @@ my @entries = (
       ] ],
     [ 'uid=nsstest,ou=People,' . $LdapInternalSuffix,
       attrs => [
-	  gidNumber => $nsstestId,
-	  uidNumber => $nsstestId,
+          objectClass => [ 'posixAccount', 'shadowAccount', 'account' ], 
 	  qw(
-	    objectClass posixAccount
-	    objectClass shadowAccount
-	    objectClass account
 	    uid nsstest
 	    cn nsstest
 	    shadowMin 0
@@ -72,10 +68,13 @@ my @entries = (
 	    shadowFlag -1
 	    homeDirectory /var/lib/nethserver/home/nsstest
 	    loginShell /bin/false
-      )] ],
+      ),
+      gidNumber => $nsstestId,
+      uidNumber => $nsstestId,
+    ] ],
     [ 'cn=nsstest,ou=Groups,' . $LdapInternalSuffix,
       attrs => [
-	  gidNumber => $nsstestId,	  
+	 gidNumber => $nsstestId,	  
 	  qw(
 	    objectClass posixGroup
 	    cn nsstest
