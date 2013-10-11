@@ -76,16 +76,8 @@ event_actions('password-policy-update',
 # password-modify event
 #--------------------------------------------------
 event_actions('password-modify', qw(
-              password-set 25
-              password-cleanup 90
+              user-activate 40
 ));
-
-#--------------------------------------------------
-# validate passwords
-#--------------------------------------------------
-validator_actions('password-strength',
-		  'password-strength' => '10');
-
 
 #--------------------------------------------------
 # actions for user-create event

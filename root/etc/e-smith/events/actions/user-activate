@@ -24,9 +24,13 @@ if [ $# -ge 3 ]; then
    EVENT=$1
    USER=$2
    FILE=$3
-   /usr/bin/shred -u $FILE 2> /dev/null 
+   if [ -f $FILE ]; then
+     /sbin/e-smith/db accounts setprop $USER __state active
+   else
+     echo "User not activated"
+     exit 1
+   fi
 else
    echo "Not enough arguments"
    exit 1
 fi
-
