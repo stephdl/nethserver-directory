@@ -49,6 +49,12 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %changelog
+* Wed Oct 16 2013 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.2.3-1.ns6
+- Add AdminIsNotRoot property #2277
+- Add language code to URLs  #2113
+- warnpassexpire script: conform to user state machine - #1073
+- Db defaults: remove Runlevels prop. Refs #206
+
 * Fri Jul 12 2013 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.2.2-1.ns6
 - Backup: implement and document full restore #2043
 - nethserver-directory: fix nsstest user creation #1981
