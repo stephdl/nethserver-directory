@@ -76,7 +76,9 @@ event_actions('password-policy-update',
 # password-modify event
 #--------------------------------------------------
 event_actions('password-modify', qw(
-              user-activate 40
+              password-set 25
+              count-active-user-accounts 80
+              password-cleanup 90
 ));
 
 #--------------------------------------------------

@@ -411,9 +411,8 @@ sub activeUsers()
 {
     my $self = shift;
     my @users = $self->users();
-
     return unless @users;
-    return grep { ($_->prop("PasswordSet") eq 'yes' || !defined($_->prop("Lock")) || $_->prop("Lock") eq 'no') } @users;
+    return grep { ($_->prop("__state") || '') eq 'active' } @users;
 }
 
 =head2 get_next_uid
