@@ -33,17 +33,15 @@ if ( ! -f '/var/lib/ldap/cn.bdb' ) { # first configuration
 }
 
 
-
 #
-# Ensure daemons are running
+# Ensure slapd is running after a full stop/start
 #
-foreach my $daemon (qw(slapd nslcd)) {
-    if(NethServer::Service::start($daemon) != 0) {
-	sleep 1;
-    } else {
-	die("Could not start `$daemon`.\n");
-    }
+my $slapd = NethServer::Service->new('slapd');
+if($slapd->is_running()) {
+    $slapd->stop();
 }
+$slapd->start();
+
 
 
 #

@@ -23,10 +23,15 @@
 use strict;
 use NethServer::Service;
 
-NethServer::Service::stop('nslcd');
-NethServer::Service::stop('slapd');
-NethServer::Service::start('slapd') or die("[ERROR] Could not start sladp\n");
-NethServer::Service::start('nslcd') or die("[ERROR] Could not start nslcd\n");
+
+#
+# Ensure slapd is running after a full stop/start
+#
+my $slapd = NethServer::Service->new('slapd');
+if($slapd->is_running()) {
+    $slapd->stop();
+}
+$slapd->start() or die("[ERROR] Could not restart slapd\n");
 
 if(system('/usr/bin/id nsstest &>/dev/null') == 0) {
     warn "[INFO] nethserver-directory: libnss test OK.\n";
