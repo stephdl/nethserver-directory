@@ -31,8 +31,11 @@ while(my $shadowEntry = <SPH>) {
     # see shadow.h
     my ($namp, $pwdp, $lstchgm, $min, $max, $warn, $inact, $expire) = split(':', $shadowEntry);
 
-    # skip non-user entries:
-    if( ! defined $accountsDb{$namp} || ! $accountsDb{$namp}{type} eq 'user') {
+    # skip non-user entries and non-active users:
+    if( ! defined $accountsDb{$namp} 
+	|| $accountsDb{$namp}{'type'} ne 'user'
+	|| $accountsDb{$namp}{'__state'} ne 'active'
+	) {
 	next;
     }
 
