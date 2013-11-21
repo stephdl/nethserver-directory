@@ -40,9 +40,14 @@ while(my $shadowEntry = <SPH>) {
     }
 
     my $today = int (time / 86400);
+    my $warn_end = $lstchgm + $max;
+    my $warn_start = $warn_end - $warn;
 
-    # if max password age is reached, add to @warnQueue
-    if ($max > 0 && $today > $lstchgm + $max - $warn) {
+    # add to @warnQueue if we are in the "warn" period:
+    if ($warn > 0
+	&& $max > $warn 
+	&& $today > $warn_start 
+	&& $today <= $warn_end) {
 	push @warnQueue, [$namp, ($lstchgm + $max) * 86400];
     }
     
