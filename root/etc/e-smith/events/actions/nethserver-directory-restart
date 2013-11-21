@@ -33,7 +33,21 @@ if($slapd->is_running()) {
 }
 $slapd->start() or die("[ERROR] Could not restart slapd\n");
 
-if(system('/usr/bin/id nsstest &>/dev/null') == 0) {
+my $entry = undef;
+my $attempt = 0;
+
+# Wait for nslcd to complete startup:
+sleep(1);
+while($attempt < 4) {
+    $attempt = $attempt + 1;
+    $entry = getpwnam('nsstest');
+    if($entry) {
+	last;
+    }
+    sleep(4);
+}
+
+if($entry) {
     warn "[INFO] nethserver-directory: libnss test OK.\n";
 } else {
     warn "[ERROR] nethserver-directory: libnss test FAILED.\n";
