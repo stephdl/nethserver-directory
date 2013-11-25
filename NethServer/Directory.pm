@@ -23,6 +23,8 @@ package NethServer::Directory;
 use strict;
 use esmith::ConfigDB;
 use NethServer::Directory::LDAP;
+use NethServer::Password;
+use IPC::Open2;
 use Net::LDAP::LDIF;
 use Carp;
 
@@ -64,43 +66,11 @@ sub getUserPassword
     my $user = shift;
     my $crypt = shift;
 
-    my $cryptSaltFormat = getCryptSaltFormat();
-    my $file;
-
-    if($user eq 'pam') {
-	#
-	# pam_ldap read the "secret" file for rootbinddb password
-	# see pam_ldap(5) for details
-	#
-	$file = '/etc/pam_ldap.secret';
-    } else {
-	$file = '/etc/openldap/.' . $user . '.pw';
-    }
-
-    my $password;
-
-    if(not -e $file) {
-	my $umask = umask 0177;
-	`slappasswd -n -g > $file`;
-	umask $umask;
-    }
-
     if($crypt) {
-	$password = `slappasswd -n -u -c '$cryptSaltFormat' -T $file`;
-	chomp($password);	
-    } else {
-	open(FH, $file);
-	$password = <FH>;
-	chomp($password);
-	close(FH);
+	warn '[ERROR] the crypt argument is no longer supported';
     }
 
-    return $password;
-}
-
-sub getCryptSaltFormat 
-{
-    return '$6$%.86s';
+    return NethServer::Password::store($user);
 }
 
 sub connect
@@ -189,7 +159,20 @@ sub configServiceAccount
 
     # Create cn=account,dc=directory,dc=nh ldap entry
 
-    my $cryptPassword = getUserPassword($account, 1);
+    my $password = NethServer::Password::store("/var/lib/nethserver/secrets/" . $account);
+
+    # glibc SHA-512 salt format:
+    my $cryptSaltFormat = '$6$%.86s';
+    my $pid = open2(\*COUT, \*CIN, qw(/usr/sbin/slappasswd -u -T /dev/stdin -c), $cryptSaltFormat);
+    print CIN "$password"; close(CIN);
+    my $cryptPassword = <COUT> ;
+    chomp($cryptPassword);	
+    waitpid($pid, 0);
+    if($?) {
+	warn "[ERROR] slappasswd failed. $?\n";
+	$cryptPassword="";
+	$errors++;
+    }
 
     my @entries = (
         [ 'cn=' . $account . ',' . $internalSuffix,
