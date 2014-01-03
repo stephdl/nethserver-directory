@@ -129,7 +129,7 @@ sub getNssTestId()
     my $entry = $ldap->getUser('nsstest');
 
     if( ! $entry ) {
-	return $ldap->getFreeId();
+	return $ldap->getFreeId(501);
     }
 
     return $entry->get_value('uidNumber');
