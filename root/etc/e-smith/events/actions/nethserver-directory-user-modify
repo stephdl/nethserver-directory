@@ -86,13 +86,15 @@ my $cn = $firstName . ' ' . $lastName;
 $cn =~ s/^\s+//g;
 $cn =~ s/\s+$//g;
 
-if(system($lusermod, 
-	  '--surname=' . $lastName, 
-	  '--givenname=' . $firstName, 
-	  '--commonname=' . $cn,
-	  $userName) != 0) {
-    $errors ++;
-    warn "Failed to modify user `$userName` name fields!";
+if(length($cn) > 0) {
+    if(system($lusermod, 
+	      '--surname=' . $lastName, 
+	      '--givenname=' . $firstName, 
+	      '--commonname=' . $cn,
+	      $userName) != 0) {
+	$errors ++;
+	warn "[ERROR] Failed to modify user `$userName` name fields!";
+    }
 }
 
 exit ($errors == 0 ? 0 : 1);
