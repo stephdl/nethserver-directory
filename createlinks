@@ -46,6 +46,7 @@ event_templates('nethserver-directory-update', qw(
     /etc/pam.d/password-auth-nh
     /etc/hosts.allow
     /etc/hosts.deny
+    /etc/sudoers
 ), @certificates);
 
 event_actions('nethserver-directory-update', qw(
