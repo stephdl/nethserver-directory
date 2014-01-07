@@ -215,10 +215,11 @@ foreach my $srcGroup (@groups) {
 #
 # admin's data migration:
 #
-File::Path::make_path('/var/lib/nethserver/migration/admin', { mode => 0700});
-if(migrateDir($sourceDir . '/home/e-smith/files/users/admin', '/var/lib/nethserver/migration/admin')) {
-    symlink '../var/lib/nethserver/migration/admin', '/root/admin-migration-' . $timestamp;
-} else {
+my $adminHome = getpwnam('admin')->dir;
+if( ! -d $adminHome) {
+    File::Path::make_path($adminHome, { mode => 0700, user => 'admin', group => 'admin'});
+}
+if(migrateDir($sourceDir . '/home/e-smith/files/users/admin', $adminHome)) {
     $errors++;
 }
 
