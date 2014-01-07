@@ -110,13 +110,4 @@ system(
 # Release lock if we have one
 $lock && esmith::lockfile::UnlockFile($lock);
 
-# `admin` user is implicit member of all groups; NOTE: libuser 0.56
-# with ldap backend seems to fail silently when asked to remove all
-# the members of a group; admin here ensure the group contains a
-# member at least - Davide Principi <davide.principi@nethesis.it>
-if(system("/usr/sbin/lgroupmod", '-M', 'admin', $groupName) != 0) {
-    warn "Failed to add `admin` user in group `$groupName` members list.\n";
-    $errors ++;
-}
-
 exit ($errors == 0 ? 0 : 1);

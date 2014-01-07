@@ -27,8 +27,10 @@ use strict;
 use Errno;
 use esmith::ConfigDB;
 use esmith::AccountsDB;
+use NethServer::Directory;
 
 my $a = esmith::AccountsDB->open_ro || die "Couldn't open accounts db\n";
+my $ldap = NethServer::Directory->new() || die "Could not connect NethServer LDAP backend";
 
 my $errors = 0;
 my $event = shift || die "Event name arg missing\n";
@@ -38,8 +40,8 @@ my $event = shift || die "Event name arg missing\n";
 my @groups = @ARGV;
 
 if (scalar(@groups) == 0) {
-    warn "Group name is missing, assuming all account db group entries";
-    @groups = $a->groups();
+    warn "[INFO] Refreshing all group entries.\n";
+    @groups = map { $_->key } $a->groups();
 } elsif (scalar(@groups) > 1) {
     warn "DEPRECATED: Multiple group name arguments are deprecated!";
 }
@@ -54,14 +56,6 @@ foreach my $groupName (@groups)
     }
     my %properties = $group->props;
 
-    #------------------------------------------------------------
-    # Modify the group. We do it the hard way - by removing all the
-    # current group members and adding the new ones (rather than
-    # deleting the group and recreating it). That guarantees that
-    # we keep the same group ID so that files associated with this
-    # group are unaffected.
-    #------------------------------------------------------------
-
     my $groupDesc = $properties{'Description'} || $groupName;
 
     # gecos must be 7bit ASCII/ldap IA5String. Refs #911
@@ -72,24 +66,14 @@ foreach my $groupName (@groups)
 	$errors ++;
     }
 
-    my ($name, $passwd, $gid, $members) = getgrnam ($groupName);
+    my $members = [grep { getpwnam($_) } split(',', $properties{'Members'})];
 
-    # admin user is never removed. This permits lgroupmod to complete
-    # the group modification. lgroupmod fails silently if all members
-    # are removed! Refs #913
-    my @oldMembersList = grep { !/^admin$/ } split (/\s+/, $members);
-    my $oldMembers = join (',', sort (@oldMembersList));
-    my $newMembers = $properties {'Members'}; 
-
-    if(system("/usr/sbin/lgroupmod", "-m", $oldMembers, $groupName) != 0) {
-        warn "Failed to remove old members from group $groupName.\n";
-	$errors ++;
+    if($ldap->modify("cn=$groupName,ou=Groups,dc=directory,dc=nh",
+		     replace => [memberUid => $members])->is_error()) {
+	warn "[ERROR] failed to set members of group `$groupName`\n";
+	$errors++;
     }
 
-    if(system("/usr/sbin/lgroupmod", "-M", $newMembers, $groupName) != 0) {
-        warn "Failed to add new members from group $groupName.\n";
-	$errors ++;
-    }
 }
 
 exit ($errors == 0 ? 0 : 1);
