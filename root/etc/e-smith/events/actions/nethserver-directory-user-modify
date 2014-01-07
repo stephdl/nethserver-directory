@@ -45,7 +45,7 @@ my $type = $account->prop('type') || "unknown";
 exit (0) if ($type eq 'ibay');
 
 die "Account $userName is not a user or group account; update LDAP entry failed.\n"
-unless (($type eq 'user') || ($type eq 'group') || ($userName eq 'admin'));
+unless (($type eq 'user') || ($type eq 'group'));
 
 #------------------------------------------------------------
 # Update LDAP inetOrgPerson database entry.
