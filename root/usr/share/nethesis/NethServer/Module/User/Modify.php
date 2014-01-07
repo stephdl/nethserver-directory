@@ -44,9 +44,7 @@ class Modify extends \Nethgui\Controller\Table\Modify
         }
 
         // The user name must satisfy the USERNAME generic grammar:
-        if ($this->getIdentifier() === 'delete') {
-            $userNameValidator = $this->createValidator(Validate::USERNAME)->platform('user-delete');
-        } elseif ($this->getIdentifier() === 'create') {
+        if ($this->getIdentifier() === 'create') {
             $userNameValidator = $this->createValidator(Validate::USERNAME)->platform('user-create');
         } else {
             $userNameValidator = FALSE;
@@ -83,6 +81,16 @@ class Modify extends \Nethgui\Controller\Table\Modify
         }
     }
 
+    public function validate(\Nethgui\Controller\ValidationReportInterface $report)
+    {
+        if ($this->getIdentifier() === 'delete') {
+            $v = $this->createValidator(Validate::USERNAME)->platform('user-delete');
+            if( ! $v->evaluate($this->getAdapter()->getKeyValue())) {
+                $report->addValidationError($this, 'username', $v);
+            }
+        }
+        parent::validate($report);
+    }
     /**
      * Delete the record after the event has been successfully completed
      * @param string $key

@@ -35,9 +35,7 @@ class Modify extends \Nethgui\Controller\Table\Modify
     public function initialize()
     {
         // The group name must satisfy the USERNAME generic grammar:
-        if ($this->getIdentifier() === 'delete') {
-            $groupNameValidator = $this->createValidator(Validate::USERNAME)->platform('group-delete');
-        } elseif ($this->getIdentifier() === 'create') {
+        if ($this->getIdentifier() === 'create') {
             $groupNameValidator = $this->createValidator(Validate::USERNAME)->platform('group-create');
         } else {
             $groupNameValidator = FALSE;
@@ -72,6 +70,17 @@ class Modify extends \Nethgui\Controller\Table\Modify
         }
 
         return $values;
+    }
+
+    public function validate(\Nethgui\Controller\ValidationReportInterface $report)
+    {
+        if ($this->getIdentifier() === 'delete') {
+            $v = $this->createValidator(Validate::USERNAME)->platform('group-delete');
+            if( ! $v->evaluate($this->getAdapter()->getKeyValue())) {
+                $report->addValidationError($this, 'groupname', $v);
+            }
+        }
+        parent::validate($report);
     }
 
     /**
