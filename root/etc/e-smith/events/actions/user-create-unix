@@ -24,10 +24,12 @@ use strict;
 use Errno;
 use esmith::ConfigDB;
 use esmith::AccountsDB;
+use NethServer::Directory;
 use File::Path;
 
-my $conf = esmith::ConfigDB->open_ro;
-my $accounts = esmith::AccountsDB->open;
+my $conf = esmith::ConfigDB->open_ro() || die("Could not open Config DB");
+my $accounts = esmith::AccountsDB->open() || die("Could not open Accounts DB");
+my $directory = NethServer::Directory->new() || die("Could not connect LDAP");
 my $homeDirPrefix = '/var/lib/nethserver/home/';
 
 my $errors = 0;
@@ -105,5 +107,10 @@ if(system('/usr/sbin/lusermod', '-L', $userName) != 0) {
 }
 
 $acct->set_prop('__state', 'new');
+
+if( ! $directory->addGroupMembers('locals', $userName)) {
+    warn "[ERROR] failed to add member to \"locals\" group\n";
+    $errors ++;
+}
 
 exit ($errors == 0 ? 0 : 1);

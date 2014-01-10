@@ -307,4 +307,49 @@ sub getFreeId($)
 
 }
 
+=head2 addGroupMembers($groupName, @members..)
+
+Add the given @members to $groupName
+
+=cut
+sub addGroupMembers
+{
+    my $self = shift;
+    my $groupName = shift;
+
+    my $search = $self->search(base => "ou=Groups," . getInternalSuffix(),
+			       filter => "(&(cn=$groupName)(objectClass=posixGroup))");
+
+    if($search->is_error() || $search->count() == 0) {
+	return 0;
+    }
+
+    my $entry = $search->entry(0);
+    my %members = map { $_ ? ($_ => 1) : () } ($entry->get_value('memberUid'), @_);
+
+    $entry->replace('memberUid', [ keys %members ]);
+
+    return ! $entry->update($self)->is_error();
+}
+
+=head2 delGroupMembers($groupName, @members..)
+
+Remove the given @members from $groupName
+
+=cut
+sub delGroupMembers
+{
+    my $self = shift;
+    my $groupName = shift;
+
+    my $search = $self->search(base => "ou=Groups," . getInternalSuffix(),
+			       filter => "(&(cn=$groupName)(objectClass=posixGroup))");
+
+    if($search->is_error() || $search->count() == 0) {
+	return 0;
+    }
+
+    $search->entry(0)->del(memberUid => [@_]);
+    return ! $search->entry(0)->update()->is_error();
+}
 1;

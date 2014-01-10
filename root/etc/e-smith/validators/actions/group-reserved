@@ -19,6 +19,6 @@
 # along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
 #
 my $groupName = shift or die('Missing group name argument');
-my $isReserved = $groupName =~ m/^(shared|domadmins|domusers|domguests)$/;
+my $isReserved = $groupName =~ m/^(locals|domadmins|domusers|domguests)$/;
 
 exit($isReserved ? 3 : 0);

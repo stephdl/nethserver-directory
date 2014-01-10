@@ -21,6 +21,7 @@
 
 use NethServer::Directory;
 use esmith::ConfigDB;
+use User::grent;
 
 my $ldap = NethServer::Directory->new or die("No LDAP connection");
 my $configDb = esmith::ConfigDB->open_ro() || die('Could not open ConfigDB');
@@ -32,7 +33,8 @@ my $LdapInternalSuffix = NethServer::Directory::getInternalSuffix();
 #
 my %OrganizationContact = $configDb->get('OrganizationContact')->props or {'Company' => 'Not Set'};
 
-my $nsstestId = getNssTestId();
+my $nsstestId = getUserNameId('nsstest', 501);
+my $localsId = getUserNameId('locals', $nsstestId + 1);
 
 my @entries = (
     [ $LdapInternalSuffix,
@@ -74,10 +76,38 @@ my @entries = (
     ] ],
     [ 'cn=nsstest,ou=Groups,' . $LdapInternalSuffix,
       attrs => [
-	 gidNumber => $nsstestId,	  
+	 gidNumber => $nsstestId,
 	  qw(
 	    objectClass posixGroup
 	    cn nsstest
+    )] ],   
+    [ 'uid=locals,ou=People,' . $LdapInternalSuffix,
+      attrs => [
+          objectClass => [ 'posixAccount', 'shadowAccount', 'account' ], 
+	  qw(
+	    uid locals
+	    cn locals
+	    shadowMin 0
+	    shadowMax 99999
+	    shadowWarning 7
+	    shadowExpire -1
+	    shadowInactive -1
+	    userPassword {CRYPT}!!
+	    shadowLastChange 0
+	    shadowFlag -1
+	    homeDirectory /var/lib/nethserver/home/locals
+	    loginShell /bin/false
+      ),
+	  gecos => "Local users",
+	  gidNumber => $localsId,
+	  uidNumber => $localsId,
+    ] ],
+    [ 'cn=locals,ou=Groups,' . $LdapInternalSuffix,
+      attrs => [
+	  gidNumber => $localsId,	  
+	  qw(
+	    objectClass posixGroup
+	    cn locals
     )] ],
     );
 
@@ -124,12 +154,14 @@ exit($errors);
 
 
 
-sub getNssTestId()
+sub getUserNameId()
 {
-    my $entry = $ldap->getUser('nsstest');
+    my $userName = shift;
+    my $startId = shift;
+    my $entry = $ldap->getUser($userName);
 
     if( ! $entry ) {
-	return $ldap->getFreeId(501);
+	return $ldap->getFreeId($startId);
     }
 
     return $entry->get_value('uidNumber');
