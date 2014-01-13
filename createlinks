@@ -53,7 +53,6 @@ event_actions('nethserver-directory-update', qw(
 	      initialize-default-databases               00
 	      nethserver-directory-conf                  10
 	      nethserver-directory-dit-setup             11
-              nethserver-directory-init-admin            12
 	      nethserver-directory-password-policy       50
 ));
 
@@ -232,5 +231,15 @@ event_actions('pre-backup-config', qw(
 #
 event_actions('post-restore-config', qw(
     nethserver-directory-restore-ldap   20
+));
+
+#
+# FIXME: create default user and group accounts in runlevel-adjust, to
+# be sure that the system is consistent, daemons are running and ready
+# to initialize accounts.
+#
+event_actions('runlevel-adjust', qw(
+    nethserver-directory-init-admin    91
+    create-default-accounts            95
 ));
 
