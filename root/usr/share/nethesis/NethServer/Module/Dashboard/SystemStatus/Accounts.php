@@ -41,7 +41,7 @@ class Accounts extends \Nethgui\Controller\AbstractController
             if (!isset($accounts[$record['type']])) {
                 $accounts[$record['type']] = 0;
             }
-            $accounts[$record['type']] = $accounts[$record['type']]++;
+            $accounts[$record['type']] = $accounts[$record['type']]+1;
         }
  
         return $accounts;
