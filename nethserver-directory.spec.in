@@ -33,7 +33,7 @@ mv -v NethServer root%{perl_vendorlib}
 mv -v esmith root%{perl_vendorlib}
 
 perl createlinks
-
+%{makedocs}
 
 %install
 rm -rf $RPM_BUILD_ROOT
