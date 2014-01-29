@@ -352,4 +352,30 @@ sub delGroupMembers
     $search->entry(0)->del(memberUid => [@_]);
     return ! $search->entry(0)->update()->is_error();
 }
+
+=head2 setGroupMembers($groupName, @members..)
+
+Set the members of $groupName to the given list
+
+=cut
+sub setGroupMembers
+{
+    my $self = shift;
+    my $groupName = shift;
+
+    my $search = $self->search(base => "ou=Groups," . getInternalSuffix(),
+			       filter => "(&(cn=$groupName)(objectClass=posixGroup))");
+
+    if($search->is_error() || $search->count() == 0) {
+	return 0;
+    }
+
+    my $entry = $search->entry(0);
+    my %members = map { $_ ? ($_ => 1) : () } @_;
+
+    $entry->replace('memberUid', [ keys %members ]);
+
+    return ! $entry->update($self)->is_error();
+}
+
 1;
