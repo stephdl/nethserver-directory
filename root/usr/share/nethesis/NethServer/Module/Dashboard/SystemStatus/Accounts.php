@@ -38,6 +38,10 @@ class Accounts extends \Nethgui\Controller\AbstractController
         $accounts = array();
         $records = $this->getPlatform()->getDatabase('accounts')->getAll();
         foreach ($records as $record) {
+            # skip deleted account
+            if (strpos($record['type'],'delete') !== FALSE) {
+                continue;
+            }
             if (!isset($accounts[$record['type']])) {
                 $accounts[$record['type']] = 0;
             }
