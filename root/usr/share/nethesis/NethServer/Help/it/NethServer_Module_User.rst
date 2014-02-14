@@ -2,8 +2,8 @@
 Utenti
 ======
 
-L'utente di sistema è necessario per accedere a molti servizi erogati da
-NethServer (email, cartelle condivise etc.).
+L'utente di sistema è necessario per accedere a molti servizi erogati dal
+server (email, cartelle condivise etc.).
 
 Ogni utente è caratterizzato da una coppia di credenziali (utente e
 password). Un utente appena creato rimane bloccato finché non viene
