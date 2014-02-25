@@ -221,7 +221,8 @@ my $adminHome = getpwnam('admin')->dir;
 if( ! -d $adminHome) {
     File::Path::make_path($adminHome, { mode => 0700, user => 'admin', group => 'admin'});
 }
-if(migrateDir($sourceDir . '/home/e-smith/files/users/admin', $adminHome)) {
+if( ! migrateDir($sourceDir . '/home/e-smith/files/users/admin', $adminHome)) {
+    warn "[ERROR] admin home dir migration failed\n";
     $errors++;
 }
 
