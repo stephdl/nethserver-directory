@@ -134,7 +134,7 @@ foreach my $srcUser (@users) {
     # USER-CREATE event
     #
     if( ! esmith::event::event_signal('user-create', $userName)) {
-	warn "[WARNING] user-create event failed for user " . $userName . "\n";
+	warn "[ERROR] user-create event failed for user " . $userName . "\n";
 	$errors ++;
     }
 
@@ -158,7 +158,7 @@ foreach my $srcUser (@users) {
 	chomp($randomPassword);
 	print $passwordFile $randomPassword;
 	if( ! esmith::event::event_signal('password-modify', $userName, $passwordFile)) {
-	    warn "[WARNING] password-modify event failed for user " . $userName . "\n";
+	    warn "[ERROR] password-modify event failed for user " . $userName . "\n";
 	    $errors ++;
 	}
 	close($passwordFile);
@@ -171,7 +171,8 @@ foreach my $srcUser (@users) {
 	    print PH $randomPassword . "\n";
 	    print PH $shadowDb->{$userName}->{pwdp};
 	    if( ! close(PH)) {
-		warn "[WARNING] failed to restore password for user $userName\n";	    
+		warn "[ERROR] failed to restore password for user $userName\n";
+		$errors ++;
 	    }
 	}
 
@@ -184,7 +185,8 @@ foreach my $srcUser (@users) {
     #
     my $homeDir = $userPwEnt->dir;
     if( ! migrateDir($sourceDir . '/home/e-smith/files/users/' . $userName, $homeDir) ) {
-	warn "[WARNING]: User $userName: home directory migration failed!\n";
+	warn "[ERROR] Could not migrate $userName home directory!\n";
+	$errors ++;
     }
 
     
@@ -205,7 +207,7 @@ foreach my $srcGroup (@groups) {
     }
 
     if( ! esmith::event::event_signal('group-create', $srcGroup->key)) {
-	warn "Failed to migrate group " . $srcGroup->key . "\n";
+	warn "[ERROR] Failed to migrate group " . $srcGroup->key . "\n";
 	$errors ++;
     }
 
