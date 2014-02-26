@@ -49,6 +49,11 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %changelog
+* Wed Feb 26 2014 Davide Principi <davide.principi@nethesis.it> - 2.0.1-1.ns6
+- Revamp web UI style - Enhancement #2656 [NethServer]
+- Skip deleted accounts in dashboard - Bug #2648 [NethServer]
+- Implement hostname-modify event for samba  - Enhancement #2626 [NethServer]
+
 * Wed Feb 05 2014 Davide Principi <davide.principi@nethesis.it> - 2.0.0-1.ns6
 - Move admin user in LDAP DB - Feature #2492 [NethServer]
 - IPSec: honor VPNClientAccess property - Enhancement #2294 [NethServer]
