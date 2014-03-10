@@ -49,6 +49,9 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %changelog
+* Mon Mar 10 2014 Davide Principi <davide.principi@nethesis.it> - 2.0.2-1.ns6
+- Backup config: can't restore LDAP dump - Bug #2680 [NethServer]
+
 * Wed Feb 26 2014 Davide Principi <davide.principi@nethesis.it> - 2.0.1-1.ns6
 - Revamp web UI style - Enhancement #2656 [NethServer]
 - Skip deleted accounts in dashboard - Bug #2648 [NethServer]
