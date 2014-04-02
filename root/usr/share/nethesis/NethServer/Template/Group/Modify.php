@@ -15,7 +15,7 @@ $groupInfo = $view->panel()
     ->insert($view->textInput('Description'))
     ->insert($view->objectPicker('Members')
         ->setAttribute('objects', 'MembersDatasource')
-        ->setAttribute('template', $T('Members'))
+        ->setAttribute('template', $T('Members_label'))
         ->setAttribute('objectLabel', 1));
 
 $tabs = $view->tabs()

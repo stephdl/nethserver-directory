@@ -3,9 +3,9 @@
 $view->requireFlag($view::INSET_FORM);
 
 if ($view->getModule()->getIdentifier() == 'update') {
-    $headerText = 'Update user `${0}`';
+    $headerText = $T('Update user `${0}`');
 } else {
-    $headerText = 'Create a new user';
+    $headerText = $T('Create a new user');
 }
 
 echo $view->header('username')->setAttribute('template', $headerText);
@@ -17,7 +17,7 @@ $basicInfo = $view->panel()
     ->insert($view->textInput('LastName'))
     ->insert($view->objectPicker('Groups')
     ->setAttribute('objects', 'GroupsDatasource')
-    ->setAttribute('template', 'Groups')
+    ->setAttribute('template', $T('Groups_label'))
     ->setAttribute('objectLabel', 1));
 
 

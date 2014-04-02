@@ -2,16 +2,16 @@
 $view->requireFlag($view::INSET_DIALOG);
 
 if ($view->getModule()->getIdentifier() == 'lock') {
-    $headerText = 'Lock user `${0}`';
-    $panelText = 'Proceed with user `${0}` lock?';
+    $headerText = $T('Lock user `${0}`');
+    $panelText = $T('Proceed with user `${0}` lock?');
 } else {
-    $headerText = 'Unlock user `${0}`';
-    $panelText = 'Proceed with user `${0}` unlock?';
+    $headerText = $T('Unlock user `${0}`');
+    $panelText = $T('Proceed with user `${0}` unlock?');
 }
 
 echo $view->panel()
     ->insert($view->header('username')->setAttribute('template', $headerText))
-    ->insert($view->textLabel('username')->setAttribute('template', $view->translate($panelText)))
+    ->insert($view->textLabel('username')->setAttribute('template', $panelText))
 ;
 
 echo $view->buttonList()
