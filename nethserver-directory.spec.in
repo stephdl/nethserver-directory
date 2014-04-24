@@ -40,13 +40,15 @@ rm -rf $RPM_BUILD_ROOT
 (cd root   ; find . -depth -not -name '*.orig' -print  | cpio -dump $RPM_BUILD_ROOT)
 %{genfilelist} $RPM_BUILD_ROOT \
     > %{name}-%{version}-%{release}-filelist
-echo "%doc COPYING" >> %{name}-%{version}-%{release}-filelist
+
 
 %clean 
 rm -rf $RPM_BUILD_ROOT
 
 %files -f %{name}-%{version}-%{release}-filelist
 %defattr(-,root,root)
+%doc COPYING
+%doc scripts/import_users
 
 %changelog
 * Mon Mar 10 2014 Davide Principi <davide.principi@nethesis.it> - 2.0.2-1.ns6
