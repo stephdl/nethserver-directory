@@ -49,72 +49,72 @@ while(<FH>) {
     my ($username, $firstName, $lastName, $email, $password) = split(/$separator/, $_);
 
     if( ! $username) {
-	next;
+        next;
     }
 
     if( ! $firstName) {
-	warn "[WARNING] Account `$username` is missing FirstName column: skipped.\n";
-	next;
+        warn "[WARNING] Account `$username` is missing FirstName column: skipped.\n";
+        next;
     }
 
     if( ! $lastName) {
-	warn "[WARNING] Account `$username` is missing LastName column: skipped.\n";
-	next;
+        warn "[WARNING] Account `$username` is missing LastName column: skipped.\n";
+        next;
     }
 
     if($accountsDb->get($username)) {
-	warn "[WARNING] Account `$username` already registered: skipped.\n";
-	next;
+        warn "[WARNING] Account `$username` already registered: skipped.\n";
+        next;
     }
 
     my $record = $accountsDb->new_record($username, {
-	'type' => 'user',
-	'FirstName' => $firstName,
-	'LastName' => $lastName,
-	'MailStatus' => 'enabled',
-	'Samba' => 'enabled'
+        'type' => 'user',
+        'FirstName' => $firstName,
+        'LastName' => $lastName,
+        'MailStatus' => 'enabled',
+        'Samba' => 'enabled'
     });
 
     if( ! $record ) {
-	warn "[ERROR] Account `$username` record creation failed.\n";
-	next;
+        warn "[ERROR] Account `$username` record creation failed.\n";
+        next;
     }
     
     if( ! esmith::event::event_signal('user-create', $username) ) {
-	warn "[ERROR] Account `$username` user-create event failed.\n";
-	next;
+        warn "[ERROR] Account `$username` user-create event failed.\n";
+        next;
     }
 
     if($email) {
-	my $pseudonym = $email;
-	if($email !~ /@/) {
-	    $pseudonym .= '@';
-	}
-	
-	if($accountsDb->get($pseudonym)) {
-	    warn "[WARNING] Email `$pseudonym` already exists. Ignored.\n";	    
-	} elsif($accountsDb->new_record($pseudonym, {
-		'type'=>'pseudonym', 
-		'Account'=>$username,
-		'Access'=>'public',
-		'Description'=>'',		
-				       })) {
-		esmith::event::event_signal('pseudonym-create', $pseudonym);
-	} else {
-	    warn "[ERROR] Email `$pseudonym` creation failed.\n";	    	    
-	}
+        my $pseudonym = $email;
+        if($email !~ /@/) {
+            $pseudonym .= '@';
+        }
+        
+        if($accountsDb->get($pseudonym)) {
+            warn "[WARNING] Email `$pseudonym` already exists. Ignored.\n";         
+        } elsif($accountsDb->new_record($pseudonym, {
+            'type'=>'pseudonym', 
+            'Account'=>$username,
+            'Access'=>'public',
+            'Description'=>'',          
+        })) {
+            esmith::event::event_signal('pseudonym-create', $pseudonym);
+        } else {
+            warn "[ERROR] Email `$pseudonym` creation failed.\n";                   
+        }
     }
 
     if($password) {
-	my ($pfh, $pfilename) = tempfile('import_users_XXXXX', UNLINK=>0, DIR=>'/tmp');
-	print $pfh $password;
-	close($pfh);
+        my ($pfh, $pfilename) = tempfile('import_users_XXXXX', UNLINK=>0, DIR=>'/tmp');
+        print $pfh $password;
+        close($pfh);
 
-	if( ! esmith::event::event_signal('password-modify', $username, $pfilename) ) {
-	    warn "[ERROR] Account `$username` user-create event failed.\n";
-	    next;
-	}
-	unlink $pfilename;
+        if( ! esmith::event::event_signal('password-modify', $username, $pfilename) ) {
+            warn "[ERROR] Account `$username` user-create event failed.\n";
+            next;
+        }
+        unlink $pfilename;
     }
 
     warn "[INFO] imported $username\n";
