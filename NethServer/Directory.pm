@@ -221,11 +221,11 @@ sub enforceAccessDirective
 	return 0;
     }
 
-    if($what !~ m/=/) {
+    if($what !~ m/=/ && $what ne '*') {
 	# Prepend attrs= for backward compatibility
 	$what = 'attrs=' . $what;
     }
-   
+
     foreach my $configEntry ($configSearch->entries()) {    
 	my @olcAccess = $configEntry->get_value('olcAccess');
        
