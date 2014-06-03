@@ -146,9 +146,9 @@ sub configServiceAccount
     my $ldapAccessDirective = 'by dn.exact="cn=' . $account . ','. $internalSuffix . '" ' . $from . ' ' ;
 
     if($access & PASSWORD_WRITE) {
-	$self->enforceAccessDirective($ldapAccessDirective . 'write', 'userPassword') 
+	$self->enforceAccessDirective($ldapAccessDirective . 'write', 'attrs=userPassword') 
     } elsif($access & PASSWORD_READ) {
-	$self->enforceAccessDirective($ldapAccessDirective . 'read', 'userPassword') 
+	$self->enforceAccessDirective($ldapAccessDirective . 'read', 'attrs=userPassword') 
     }
 
     if($access & FIELDS_WRITE) {
@@ -203,7 +203,7 @@ sub enforceAccessDirective
 {
     my $self = shift;
     my $directive = shift;
-    my $field = shift;
+    my $what = shift;
     my $errors = 0;
 
     my $internalSuffix = getInternalSuffix();
@@ -221,8 +221,9 @@ sub enforceAccessDirective
 	return 0;
     }
 
-    if($field ne '*') {
-	$field = 'attrs=' . $field;
+    if($what !~ m/=/) {
+	# Prepend attrs= for backward compatibility
+	$what = 'attrs=' . $what;
     }
    
     foreach my $configEntry ($configSearch->entries()) {    
@@ -233,18 +234,18 @@ sub enforceAccessDirective
 	    s/^\{\d+\}to /to /;
 	}
 
-	if(grep(m/to \Q$field\E/s, @olcAccess)) {
-	    # Tweak existing $field ACL:
+	if(grep(m/to \Q$what\E/s, @olcAccess)) {
+	    # Tweak existing $what ACL:
 	    foreach(@olcAccess) {
-		if (m/to \Q$field\E/s && ! m/\Q$directive\E/) {
+		if (m/to \Q$what\E/s && ! m/\Q$directive\E/) {
 		    s/ manage/ manage $directive/;
 		}
 	    }
 	} else {
-	    # Prepend a new olcAccess entry specific $field,
+	    # Prepend a new olcAccess entry specific $what,
 	    # initializing root access to "manage":
 	    unshift @olcAccess, join(' ', 
-				     qq(to $field by dn.exact="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" manage),
+				     qq(to $what by dn.exact="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" manage),
 				     $directive
 		);
 	}
