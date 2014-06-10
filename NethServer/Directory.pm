@@ -228,25 +228,32 @@ sub enforceAccessDirective
 
     foreach my $configEntry ($configSearch->entries()) {    
 	my @olcAccess = $configEntry->get_value('olcAccess');
+	my $olcSuffix = $configEntry->get_value('olcSuffix');
+	my $currentDirective = $directive;
+	my $currentWhat = $what;
        
 	# Remove multivalued attribute sort order:
 	foreach(@olcAccess) {
 	    s/^\{\d+\}to /to /;
 	}
 
-	if(grep(m/to \Q$what\E/s, @olcAccess)) {
+	# Replace __OLCSUFFIX__ placeholder with actual value
+	$currentDirective =~ s/__OLCSUFFIX__/$olcSuffix/g;
+	$currentWhat =~ s/__OLCSUFFIX__/$olcSuffix/g;
+
+	if(grep(m/to \Q$currentWhat\E/s, @olcAccess)) {
 	    # Tweak existing $what ACL:
 	    foreach(@olcAccess) {
-		if (m/to \Q$what\E/s && ! m/\Q$directive\E/) {
-		    s/ manage/ manage $directive/;
+		if (m/to \Q$currentWhat\E/s && ! m/\Q$currentDirective\E/) {
+		    s/ manage/ manage $currentDirective/;
 		}
 	    }
 	} else {
 	    # Prepend a new olcAccess entry specific $what,
 	    # initializing root access to "manage":
 	    unshift @olcAccess, join(' ', 
-				     qq(to $what by dn.exact="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" manage),
-				     $directive
+				     qq(to $currentWhat by dn.exact="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" manage),
+				     $currentDirective
 		);
 	}
 
