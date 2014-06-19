@@ -51,6 +51,11 @@ rm -rf $RPM_BUILD_ROOT
 %doc scripts/import_users
 
 %changelog
+* Thu Jun 19 2014 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.0.3-1.ns6
+- Flexible "what" clause in enforceAccessDirective() - Enhancement #2757
+- Missing Italian translation - Bug #2706
+- Import users from a file - Feature #2666
+
 * Mon Mar 10 2014 Davide Principi <davide.principi@nethesis.it> - 2.0.2-1.ns6
 - Backup config: can't restore LDAP dump - Bug #2680 [NethServer]
 
