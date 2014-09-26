@@ -108,6 +108,11 @@ if(system('/usr/sbin/lusermod', '-L', $userName) != 0) {
 
 $acct->set_prop('__state', 'new');
 
+if( ! $directory->addGroupMembers($userName, $userName)) {
+    warn "[ERROR] failed to set $userName as member of its primary group\n";
+    $errors ++;
+}
+
 if( ! $directory->addGroupMembers('locals', $userName)) {
     warn "[ERROR] failed to add member to \"locals\" group\n";
     $errors ++;
