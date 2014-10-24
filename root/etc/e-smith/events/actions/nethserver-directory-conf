@@ -23,6 +23,9 @@
 use NethServer::Directory;
 use NethServer::Service;
 
+# Reload rsyslog configuration
+NethServer::Service->new('rsyslog')->restart();
+
 #
 # Restore backup if present
 #
@@ -32,8 +35,17 @@ if ( ! -f '/var/lib/ldap/cn.bdb' ) { # first configuration
     }
 }
 
-# Reload rsyslog configuration
-NethServer::Service->new('rsyslog')->restart();
+# Kill hanging post-start script bug #2928
+my $pspid = qx(/sbin/initctl status slapd);
+$pspid =~ s|^slapd.*/post-start.* ([0-9]+)$|$1|;
+if ($pspid > 0) {
+    warn "[WARNING] Killing slapd post-start script $pspid\n";
+    open(PH, "/sbin/initctl stop slapd |");
+    kill "TERM", $pspid;
+    close(PH);
+}
+# now upstart can reload its config files...
+
 
 #
 # Ensure slapd is running after a full stop/start
@@ -43,8 +55,6 @@ if($slapd->is_running()) {
     $slapd->stop();
 }
 $slapd->start();
-
-
 
 #
 # Connect to LDAP server
