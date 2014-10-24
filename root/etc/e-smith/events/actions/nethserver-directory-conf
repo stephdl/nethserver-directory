@@ -32,6 +32,8 @@ if ( ! -f '/var/lib/ldap/cn.bdb' ) { # first configuration
     }
 }
 
+# Reload rsyslog configuration
+NethServer::Service->new('rsyslog')->restart();
 
 #
 # Ensure slapd is running after a full stop/start
