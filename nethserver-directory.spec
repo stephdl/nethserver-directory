@@ -1,7 +1,7 @@
 Name: nethserver-directory
 Summary: LDAP backend for user and group accounts
-Version: @@VERSION@@
-Release: @@RELEASE@@
+Version: 2.0.3
+Release: 1%{?dist}
 License: GPL
 Source0: %{name}-%{version}.tar.gz
 BuildArch: noarch
