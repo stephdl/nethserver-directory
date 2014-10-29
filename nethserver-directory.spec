@@ -1,7 +1,7 @@
 Name: nethserver-directory
 Summary: LDAP backend for user and group accounts
-Version: @@VERSION@@
-Release: @@RELEASE@@
+Version: 2.0.3
+Release: 1%{?dist}
 License: GPL
 Source0: %{name}-%{version}.tar.gz
 BuildArch: noarch
@@ -48,7 +48,9 @@ rm -rf $RPM_BUILD_ROOT
 %files -f %{name}-%{version}-%{release}-filelist
 %defattr(-,root,root)
 %doc COPYING
+%doc scripts/fix_accounts
 %doc scripts/import_users
+
 
 %changelog
 * Thu Jun 19 2014 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.0.3-1.ns6

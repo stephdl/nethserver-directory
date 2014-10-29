@@ -1,1 +1,0 @@
-slapd	:	{ $slapd{access} eq 'private' ? '/etc/localnetworks' : 'ALL' }
