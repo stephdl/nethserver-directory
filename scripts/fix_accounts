@@ -1,0 +1,59 @@
+#!/usr/bin/perl
+
+#
+# Copyright (C) 2014 Nethesis S.r.l.
+# http://www.nethesis.it - support@nethesis.it
+# 
+# This script is part of NethServer.
+# 
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+# 
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+#
+# fix_accounts
+#
+# This helper script completes the creation of user and group
+# accounts, wherever the Accounts DB entry is not present in system
+# databases (see getent).
+#
+
+use strict;
+
+use esmith::AccountsDB;
+use esmith::event;
+
+my $adb = esmith::AccountsDB->open_ro();
+my $errors = 0;
+
+foreach ($adb->users()) {
+    if(getpwnam($_->key)) {
+        next;
+    }
+    event_signal('user-create', $_->key) || $errors++;
+}
+
+foreach ($adb->groups()) {
+    if(getgrnam($_->key)) {
+        next;
+    }
+    event_signal('group-create', $_->key) || $errors++;
+}
+
+if($errors > 0) {
+    warn("[ERROR] Some events have failed. See /var/log/messages for details.\n");
+    exit(1);
+}
+
+exit(0);
+

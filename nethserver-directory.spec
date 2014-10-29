@@ -48,7 +48,9 @@ rm -rf $RPM_BUILD_ROOT
 %files -f %{name}-%{version}-%{release}-filelist
 %defattr(-,root,root)
 %doc COPYING
+%doc scripts/fix_accounts
 %doc scripts/import_users
+
 
 %changelog
 * Thu Jun 19 2014 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.0.3-1.ns6
