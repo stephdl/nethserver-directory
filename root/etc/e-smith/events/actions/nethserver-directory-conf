@@ -23,8 +23,6 @@
 use NethServer::Directory;
 use NethServer::Service;
 
-# Reload rsyslog configuration
-NethServer::Service->new('rsyslog')->restart();
 
 #
 # Restore backup if present

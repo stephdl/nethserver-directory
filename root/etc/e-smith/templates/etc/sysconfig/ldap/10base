@@ -1,7 +1,10 @@
+#
+# 10base
+#
+
 # Options of slapd (see man slapd)
 {
-    # Force "stat" always on, if LogLevel is defined and not empty string
-    my $loglevel = (exists $slapd{'LogLevel'} && $slapd{'LogLevel'} ne '') ? (int($slapd{'LogLevel'}) | 32768) : 0;
+    my $loglevel = int($slapd{'LogLevel'} || '0');
     my $options = $slapd{'options'} || "";
     $OUT.="SLAPD_OPTIONS=\"-s $loglevel $options\"";
 }

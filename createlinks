@@ -44,7 +44,6 @@ event_templates('nethserver-directory-update', qw(
     /etc/nslcd.conf
     /etc/pam.d/system-auth-nh
     /etc/pam.d/password-auth-nh
-    /etc/rsyslog.d/slapd.conf
     /etc/sudoers
 ), # ns6_5 FIXME: remove hosts.allow/deny on next iso release
 qw(
@@ -57,6 +56,10 @@ event_actions('nethserver-directory-update', qw(
 	      nethserver-directory-conf                  10
 	      nethserver-directory-dit-setup             11
 	      nethserver-directory-password-policy       50
+));
+
+event_services('nethserver-directory-update', qw(
+     rsyslog restart
 ));
 
 # Changes to the organization contacts are propagated into LDAP:

@@ -1,7 +1,0 @@
-#
-# 10base ldap log configuration
-#
-if $programname == 'slapd' { 
-    int($slapd{'LogLevel'}) ? '' : 'and not ($msg startswith \' conn=\')'
-} then /var/log/messages
-& ~
