@@ -62,10 +62,6 @@ event_services('nethserver-directory-update', qw(
      rsyslog restart
 ));
 
-# Changes to the organization contacts are propagated into LDAP:
-event_actions('nethserver-base-save',
-	      'nethserver-directory-set-organization' => '50');
-
 # Synchronize LDAP database and user password aging on user
 # create/modify event
 event_actions($_, 
