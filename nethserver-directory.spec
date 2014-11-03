@@ -1,6 +1,6 @@
 Name: nethserver-directory
 Summary: LDAP backend for user and group accounts
-Version: 2.0.3
+Version: 2.0.4
 Release: 1%{?dist}
 License: GPL
 Source0: %{name}-%{version}.tar.gz
@@ -53,6 +53,10 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Mon Nov 03 2014 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.0.4-1.ns6
+- slapd Upstart status is out of control if BDB is corrupted - Bug #2928
+- Drop TCP wrappers hosts.allow hosts.deny templates - Enhancement #2785
+
 * Thu Jun 19 2014 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.0.3-1.ns6
 - Flexible "what" clause in enforceAccessDirective() - Enhancement #2757
 - Missing Italian translation - Bug #2706
