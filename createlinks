@@ -45,10 +45,6 @@ event_templates('nethserver-directory-update', qw(
     /etc/pam.d/system-auth-nh
     /etc/pam.d/password-auth-nh
     /etc/sudoers
-), # ns6_5 FIXME: remove hosts.allow/deny on next iso release
-qw(
-    /etc/hosts.allow
-    /etc/hosts.deny
 ), @certificates);
 
 event_actions('nethserver-directory-update', qw(
