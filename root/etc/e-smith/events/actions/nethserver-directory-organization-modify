@@ -1,0 +1,94 @@
+#!/usr/bin/perl -w
+
+#
+# Copyright (C) 2014 Nethesis S.r.l.
+# http://www.nethesis.it - support@nethesis.it
+# Copyright (C) 1999, 2000 e-smith, inc.
+# 
+# This script is part of NethServer.
+# 
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+# 
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+use strict;
+use esmith::AccountsDB;
+use esmith::ConfigDB;
+use NethServer::Directory::LDAP;
+use NethServer::Directory;
+
+my $event = shift;
+my $userName = shift;
+my $errors = 0;
+
+my $accountsDb = esmith::AccountsDB->open_ro || die("Could not open AccountsDB.\n");
+my $configDb = esmith::ConfigDB->open_ro || die("Could not open ConfigDB.\n");
+
+my $contactRecord = $configDb->get('OrganizationContact');
+
+if( ! $contactRecord ) {
+    warn("[ERROR] Could not open OrganizationContact record");
+    exit(1);
+}
+
+my @accounts = ();
+
+if($userName) {
+    @accounts = $accountsDb->get($userName);
+} else {
+    @accounts = $accountsDb->users();
+}
+
+foreach my $account (@accounts) {
+
+    my $userName = $account->key;
+
+    if($account->prop('type') ne 'user') {
+	warn("[ERROR] Invalid record `$userName` type: " . $account->type);
+	$errors ++;
+	next;
+    }
+
+    #------------------------------------------------------------
+    # Update LDAP inetOrgPerson database entry.
+    #------------------------------------------------------------
+    my $ldap = NethServer::Directory::LDAP->new;
+    my $domain = NethServer::Directory::getInternalDomain();
+    my $base = NethServer::Directory::getInternalSuffix();
+
+
+    my @attrs = ();
+    my $dn = "uid=$userName,ou=People,$base";
+
+    my $phone = $account->prop('PhoneNumber') || $contactRecord->prop('PhoneNumber') || '';
+    my $company = $account->prop('Company') || $contactRecord->prop('Company') || '';
+    my $dept = $account->prop('Department') || $contactRecord->prop('Department') || '';
+    my $city = $account->prop('City') || $contactRecord->prop('City') || '';
+    my $street = $account->prop('Street') || $contactRecord->prop('Street') || '';
+
+    # push @attrs, (mail => $email);
+    push @attrs, (telephoneNumber => $phone) unless $phone =~ /^\s*$/;
+    push @attrs, (o => $company) unless $company =~ /^\s*$/;
+    push @attrs, (ou => $dept) unless $dept =~ /^\s*$/;
+    push @attrs, (l => $city) unless $city =~ /^\s*$/;
+    push @attrs, (street => $street) unless $street =~ /^\s*$/;
+
+    my $result = $ldap->modify ($dn, replace => \@attrs);
+    if($result->is_error()) {
+	warn("[ERROR] Failed to set contact info on entry `$dn`: " . $result->error) ;
+	$errors ++;
+	next;
+    }    
+}
+
+exit($errors == 0 ? 0 : 1);
