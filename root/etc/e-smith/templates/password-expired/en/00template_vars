@@ -14,6 +14,7 @@
 
     $hostname = hostname();    
     $recipientName = $userRecord->prop('FirstName') . ' ' . $userRecord->prop('LastName');
+    $port = ${'httpd-admin'}{'TCPPort'};
 
     $rfc822date = strftime("%a, %d %b %Y %H:%M:%S GMT", gmtime($now));
 
