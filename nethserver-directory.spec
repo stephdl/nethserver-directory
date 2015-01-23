@@ -50,7 +50,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc COPYING
 %doc scripts/fix_accounts
 %doc scripts/import_users
-
+%doc scripts/fix_migration_home
 
 %changelog
 * Mon Nov 03 2014 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.0.4-1.ns6
