@@ -61,7 +61,7 @@ event_services('nethserver-directory-update', qw(
 # Synchronize LDAP database and user password aging on user
 # create/modify event
 event_actions($_, qw(
-    nethserver-organization-modify       20
+    nethserver-directory-organization-modify 20
     nethserver-directory-user-modify     25
     nethserver-directory-password-policy 40
 )) foreach(qw(

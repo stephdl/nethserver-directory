@@ -1,6 +1,6 @@
 Name: nethserver-directory
 Summary: LDAP backend for user and group accounts
-Version: 2.0.4
+Version: 2.0.6
 Release: 1%{?dist}
 License: GPL
 Source0: %{name}-%{version}.tar.gz
@@ -53,6 +53,13 @@ rm -rf $RPM_BUILD_ROOT
 %doc scripts/fix_migration_home
 
 %changelog
+* Thu Jan 29 2015 Davide Principi <davide.principi@nethesis.it> - 2.0.6-1.ns6
+- Password renewal link doesn't use httpd-admin TCPPort  - Bug #2993 [NethServer]
+
+* Tue Dec 09 2014 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.0.5-1.ns6
+- Modify all users if the ldap organisation contacts is updated - Bug #2931 [NethServer]
+- Drop TCP wrappers hosts.allow hosts.deny templates - Enhancement #2785 [NethServer]
+
 * Mon Nov 03 2014 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.0.4-1.ns6
 - slapd Upstart status is out of control if BDB is corrupted - Bug #2928
 - Drop TCP wrappers hosts.allow hosts.deny templates - Enhancement #2785
