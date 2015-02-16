@@ -56,8 +56,8 @@ if(defined $adminEntry) {
     # Delete admin account
     system(qw(/usr/sbin/userdel -f admin));
 } else {
-    # Use root password in LDAP
-    $pwhash = getpwnam('root')->passwd;
+    # Don't set a default password hash Refs #3026
+    $pwhash = undef;
 }
 
 if( ! esmith::event::event_signal('user-create', 'admin')) {
@@ -65,8 +65,9 @@ if( ! esmith::event::event_signal('user-create', 'admin')) {
     exit(1);
 }
 
-# Copy root password hash to admin's account in LDAP DB:
-if( ! set_admin_pwhash($pwhash)) {
+if( ! defined $pwhash) {
+    # pass
+} elsif( ! set_admin_pwhash($pwhash)) {
     warn "[ERROR] failed to set admin password hash\n";
     exit(2);
 }
@@ -83,6 +84,7 @@ exit(0);
 #    Utility functions
 # ---------------------------
 
+# Set the given password hash to admin's account in LDAP DB:
 sub set_admin_pwhash
 {
     my $hash = shift;
