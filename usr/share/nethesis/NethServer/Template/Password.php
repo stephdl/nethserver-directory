@@ -4,7 +4,6 @@ echo $view->header()->setAttribute('template', $T('Password_Title'));
 
 echo $view->panel()
     ->insert($view->checkbox('Users', 'strong')->setAttribute('uncheckedValue', 'none'))
-    ->insert($view->checkbox('Ibays', 'strong')->setAttribute('uncheckedValue', 'none'))
     ->insert($view->checkbox('Admin', 'strong')->setAttribute('uncheckedValue', 'none'))
     ->insert($view->checkbox('PassExpires', 'yes')->setAttribute('uncheckedValue', 'no'))
 

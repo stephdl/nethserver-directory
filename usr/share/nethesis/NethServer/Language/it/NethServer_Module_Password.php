@@ -1,7 +1,6 @@
 <?php
 $L['Password_Title'] = 'Password Policies';
 $L['Users_label'] = 'Strong password policy for Users';
-$L['Ibays_label'] = 'Strong password policy for Ibays';
 $L['Admin_label'] = 'Strong password policy for Admin';
 $L['PassExpires_label'] = 'Password Expiration for Users';
 $L['Maximum password age (${0})'] = 'The Maximum Password Age (${0})';
