@@ -27,6 +27,7 @@ namespace NethServer\Module;
  */
 class User extends \Nethgui\Controller\TableController
 {
+    private $expired = array();
 
     protected function initializeAttributes(\Nethgui\Module\ModuleAttributesInterface $base)
     {
@@ -53,6 +54,7 @@ class User extends \Nethgui\Controller\TableController
             ->addRowAction(new User\ToggleLock('unlock'))
             ->addRowAction(new User\Modify('delete'))
         ;
+        $this->expired = json_decode($this->getPlatform()->exec('/usr/bin/sudo /usr/libexec/nethserver/password-expiration')->getOutput());
 
         parent::initialize();
     }
@@ -60,6 +62,9 @@ class User extends \Nethgui\Controller\TableController
     public function prepareViewForColumnKey(\Nethgui\Controller\Table\Read $action, \Nethgui\View\ViewInterface $view, $key, $values, &$rowMetadata)
     {
         $userState = isset($values['__state']) ? strtolower($values['__state']) : 'new';
+        if ($this->expired->$key == 1) {
+            $userState = 'new';
+        }
         $rowMetadata['rowCssClass'] = trim($rowMetadata['rowCssClass'] . ' user-' . $userState);
         return strval($key);
     }
