@@ -8,17 +8,15 @@ BuildArch: noarch
 URL: %{url_prefix}/%{name} 
 
 Requires: coreutils
-Requires: pam_ldap >= 185-5, nss-pam-ldapd >= 0.7.5-3, libuser >= 0.56.13-5
+Requires: pam_ldap, nss-pam-ldapd, libuser
 Requires: openldap, openldap-clients, openldap-servers
-Requires: perl-LDAP = 1:0.40-2.nh
+Requires: perl-LDAP
 Requires: perl-Crypt-Cracklib
 Requires: nethserver-base
 # send expiring password warnings: 
 Requires: mailx, postfix, anacron
 
-BuildRequires: perl
 BuildRequires: nethserver-devtools
-BuildRequires: gettext
 
 %description
 LDAP backend for user and group accounts
@@ -36,14 +34,9 @@ perl createlinks
 %{makedocs}
 
 %install
-rm -rf $RPM_BUILD_ROOT
-(cd root   ; find . -depth -not -name '*.orig' -print  | cpio -dump $RPM_BUILD_ROOT)
-%{genfilelist} $RPM_BUILD_ROOT \
-    > %{name}-%{version}-%{release}-filelist
-
-
-%clean 
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
+(cd root   ; find . -depth -not -name '*.orig' -print  | cpio -dump %{buildroot})
+%{genfilelist} %{buildroot} > %{name}-%{version}-%{release}-filelist
 
 %files -f %{name}-%{version}-%{release}-filelist
 %defattr(-,root,root)
@@ -51,6 +44,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc scripts/fix_accounts
 %doc scripts/import_users
 %doc scripts/fix_migration_home
+%dir %{_nseventsdir}/%{name}-update
 
 %changelog
 * Thu Apr 23 2015 Davide Principi <davide.principi@nethesis.it> - 2.2.0-1
