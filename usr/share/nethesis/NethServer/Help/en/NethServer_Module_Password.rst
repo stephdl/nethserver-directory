@@ -1,8 +1,8 @@
 =================
-Password Policies
+Password policies
 =================
 
-Modify The Password Policies (the default policy is strong)
+Modify the password policies (the default policy is strong).
 
 none
 ----

@@ -1,42 +1,41 @@
 =================
-Password Policies
+Gestione password
 =================
 
-Modify The Password Policies (the default policy is strong)
+Modifica la politica delle password. Se il campo è selezionato, la politica applica è *strong*,
+altrimenti vale la politica *none*.
 
 none
 ----
-    The none policy requires that the password must comply with the following rule:
-
-    * There is no specific control over the password entered, but minimum length is 7 characters
+    Quando questa politica è abilitata, la password non deve rispettare criteri particolari ma
+    la lunghezza minima è di 7 caratteri.
 
 strong
 ------
-    The strong policy requires that the password must comply with the following rules:
+  Questa politica (default) richiede che la password rispetti le seguenti regole:
 
-    * Minimum length of 7 characters
-    * Contain at least 1 number
-    * Contain at least 1 uppercase character
-    * Contain at least 1 lowercase character
-    * Contain at least 1 special character
-    * At least 5 different characters
-    * Must be not present in the dictionaries of common words
-    * Must be different from the username
-    * Can not have repetitions of patterns formed by 3 or more characters (for example the password As1.$ AS1. $ is invalid)
+    * lunghezza minima 7 caratteri
+    * contenere almeno 1 numero
+    * contenere almeno 1 carattere maiuscolo 
+    * contenere almeno 1 carattere minuscolo
+    * contenere almeno 1 carattere speciale
+    * contenere almeno 5 caratteri diversi
+    * non deve essere presente nei dizionari di parole comuni 
+    * deve essere diversa dallo username
+    * non può avere ripetizioni di pattern formati da più 3 caratteri (ad esempio la password As1.$As1.$ non è valida)
 
-**WARNING**: Changing the default policies is highly discouraged. The use of weak passwords often lead to compromised servers by external attackers.
 
-Strong password policy for Users
-    Set a strong policy for Users Password (unchecked is 'none')
+Password forti per utenti
+    Abilita/disabilta le password forti per gli utenti (se non selezionato, viene applicata la politica 'none')
 
-Strong password policy for Admin
-    Set a strong policy for the Admin Password (unchecked is 'none')
+Password forti per l'amministratore
+    Abilita/disabilta le password forti per l'amministratore (se non selezionato, viene applicata la politica 'none')
 
-The Maximum Password Age
-    Maximum number of days for which you can keep the same password (default: 180)
+Durata massima password
+    Numero massimo di giorni in cui è possibile mantenere la stessa password
 
-The Minimum Password Age
-    Minimum number of days for which you are forced to keep the same password (default: 0)
+Durata minima password
+    Numero minimo di giorni per cui l'utente è costretto a mentenere la stessa password
 
-The number of days before sending a reminder
-    Number of days on which the warning is sent by email (default: 7)
+Numero di giorni prima di inviare promemoria
+    Un promemoria verrà inviato all'utente X giorni prima della scadenza password
