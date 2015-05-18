@@ -1,7 +1,7 @@
 .. --initial-header-level=3
 
-Password Expiration
-===================
+Scadenza password
+=================
 
-Password Expiration
-     Disable password expiration for a single user on the server.
+Scadenza password
+     Abilita/disabilita la scadenza password per un singolo utente.
