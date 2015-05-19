@@ -1,6 +1,6 @@
 Summary: NethServer configuration for password policies
 Name: nethserver-password
-Version: 1.0.2
+Version: 1.0.3
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -39,6 +39,9 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %changelog
+* Tue May 19 2015 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.0.3-1
+- Password policy page - Feature #3125 [NethServer] !!ON_QA
+
 * Sun Apr 12 2015 Stephane de Labrusse <stephdl@de-labrusse.fr> - 1.0.2-1-ns6
 - The password policy for ibays has been removed since obsoleted
 
