@@ -19,3 +19,9 @@ source_lang = en
 type = PHP_ALT_ARRAY
 
 
+[nethserver.nethserver-directorypot]
+source_file = locale/nethserver-directory.pot
+source_lang = en
+type = PO
+
+
