@@ -1,6 +1,6 @@
 Name: nethserver-directory
 Summary: LDAP backend for user and group accounts
-Version: 2.2.1
+Version: 2.2.2
 Release: 1%{?dist}
 License: GPL
 Source0: %{name}-%{version}.tar.gz
@@ -53,6 +53,9 @@ rm -rf $RPM_BUILD_ROOT
 %doc scripts/fix_migration_home
 
 %changelog
+* Wed May 20 2015 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.2.2-1
+- Localize "password expire" notifications - Enhancement #2887 [NethServer]
+
 * Tue May 19 2015 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.2.1-1
 - Create User tab not reset - Bug #2728 [NethServer]
 
