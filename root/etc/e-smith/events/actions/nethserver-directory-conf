@@ -42,6 +42,18 @@ if ($pspid > 0) {
     kill "TERM", $pspid;
     close(PH);
 }
+
+# Stop existing instances and remove the link
+if ( -e '/var/run/slapd.pid' ) {
+    {
+        local(*INPUT, $/);
+        open (INPUT, '/var/run/slapd.pid')     || die "can't open $file: $!";
+        $pid = <INPUT>;
+        $pid =~ s/\s$//;
+    }
+    kill('TERM', $pid);
+    unlink('/var/run/slapd.pid');
+}
 # now upstart can reload its config files...
 
 
