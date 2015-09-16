@@ -15,6 +15,8 @@ Requires: perl-Crypt-Cracklib
 Requires: nethserver-base
 # send expiring password warnings: 
 Requires: mailx, postfix, anacron
+Obsoletes: nethserver-password
+Provides: nethserver-password
 
 BuildRequires: perl
 BuildRequires: nethserver-devtools

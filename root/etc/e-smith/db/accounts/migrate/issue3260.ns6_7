@@ -1,0 +1,16 @@
+{
+    #
+    # issue3260.ns6_7 -- ensure PassExpires prop exists
+    #
+
+    use esmith::AccountsDB;
+
+    my $a = esmith::AccountsDB->open;
+
+    foreach (@a->users()) {
+        if ( ! $_->prop('PassExpires') ) {
+            $_->set_prop('PassExpires', 'yes');
+        }
+    }
+    '';
+}
