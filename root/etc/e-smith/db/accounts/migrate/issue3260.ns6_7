@@ -7,7 +7,7 @@
 
     my $a = esmith::AccountsDB->open;
 
-    foreach (@a->users()) {
+    foreach ($a->users()) {
         if ( ! $_->prop('PassExpires') ) {
             $_->set_prop('PassExpires', 'yes');
         }
