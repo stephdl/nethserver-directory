@@ -7,9 +7,8 @@ Source0: %{name}-%{version}.tar.gz
 BuildArch: noarch
 URL: %{url_prefix}/%{name} 
 
-Requires: coreutils
-Requires: pam_ldap, nss-pam-ldapd, libuser
-Requires: openldap, openldap-clients, openldap-servers
+Requires: nss-pam-ldapd
+Requires: openldap-clients, openldap-servers
 Requires: perl-LDAP
 Requires: perl-Crypt-Cracklib
 Requires: nethserver-base
