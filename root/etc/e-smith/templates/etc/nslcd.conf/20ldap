@@ -1,5 +1,20 @@
-uri        ldapi://
-base       { use NethServer::Directory; NethServer::Directory::getInternalSuffix() }
-use_sasl   yes
-sasl_mech  EXTERNAL
+#
+# 20ldap
+# {
+ use NethServer::Directory;
+ use NethServer::Password;
+ $suffix = NethServer::Directory::getInternalSuffix();
+ '';
+}
+
+uri         ldapi://
+base        { $suffix }
+binddn      cn=pam,{ $suffix }
+bindpw      { NethServer::Password::store('pam') }
+rootpwmoddn cn=pam,{ $suffix }
+rootpwmodpw { NethServer::Password::store('pam') }
+
+
+
+
 

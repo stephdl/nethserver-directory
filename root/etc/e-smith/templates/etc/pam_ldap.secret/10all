@@ -1,4 +1,0 @@
-{
-    use NethServer::Password;
-    $OUT = NethServer::Password::store('pam');
-}

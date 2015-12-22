@@ -33,18 +33,6 @@ if ( ! -f '/var/lib/ldap/cn.bdb' ) { # first configuration
     }
 }
 
-# Kill hanging post-start script bug #2928
-my $pspid = qx(/sbin/initctl status slapd);
-$pspid =~ s|^slapd.*/post-start.* ([0-9]+)$|$1|;
-if ($pspid > 0) {
-    warn "[WARNING] Killing slapd post-start script $pspid\n";
-    open(PH, "/sbin/initctl stop slapd |");
-    kill "TERM", $pspid;
-    close(PH);
-}
-# now upstart can reload its config files...
-
-
 #
 # Ensure slapd is running after a full stop/start
 #
@@ -69,30 +57,32 @@ my $errors = 0;
 my $CertificateFile = '/etc/pki/tls/certs/slapd.pem';
 
 #
-# Load the rwm overlay, if missing
+# Load missing modules
 #
-my $RewriterModule = `rpm -ql openldap-servers | grep 'rwm\.la\$'`;
-chomp($RewriterModule);
 
-my $olcModuleSearch = $ldap->search(
-    base => 'cn=config',
-    filter => "(&(cn=module{0})(olcModuleLoad={0}$RewriterModule))",
-    attributes => ['olcModuleLoad']
-    );
+foreach my $dynModule (qw(rwm.la back_relay.la)) {
 
-if ($olcModuleSearch->count() == 0) {
-    my $ldapAddResponse = $ldap->add(
-	'cn=module,cn=config',
-	attrs => [
-	    cn => 'module',
-	    objectClass => 'olcModuleList',
-	    olcModuleLoad => $RewriterModule	
-	]
-    );
-    if($ldapAddResponse->is_error) {
-	warn "`$RewriterModule` rwm module load error";
-	$errors ++;
+    my $olcModuleSearch = $ldap->search(
+        base => 'cn=config',
+        filter => "(&(cn=module{*})(olcModuleLoad={0}$dynModule))",
+        attributes => ['olcModuleLoad']
+        );
+
+    if ($olcModuleSearch->count() == 0) {
+        my $ldapAddResponse = $ldap->add(
+            'cn=module,cn=config',
+            attrs => [
+                cn => 'module',
+                objectClass => 'olcModuleList',
+                olcModuleLoad => $dynModule
+            ]
+        );
+        if($ldapAddResponse->is_error) {
+            warn "`$dynModule` module load error";
+            $errors ++;
+        }
     }
+
 }
 
 #
@@ -130,7 +120,7 @@ my @configChangeList = (
      ]],
 
     ['modify',
-     'olcDatabase={2}bdb,cn=config',
+     'olcDatabase={2}hdb,cn=config',
      replace => [
          olcSuffix => $LdapInternalSuffix,
      ]]
