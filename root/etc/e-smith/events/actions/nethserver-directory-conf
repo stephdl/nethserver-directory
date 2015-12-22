@@ -57,30 +57,32 @@ my $errors = 0;
 my $CertificateFile = '/etc/pki/tls/certs/slapd.pem';
 
 #
-# Load the rwm overlay, if missing
+# Load missing modules
 #
-my $RewriterModule = `rpm -ql openldap-servers | grep 'rwm\.la\$'`;
-chomp($RewriterModule);
 
-my $olcModuleSearch = $ldap->search(
-    base => 'cn=config',
-    filter => "(&(cn=module{0})(olcModuleLoad={0}$RewriterModule))",
-    attributes => ['olcModuleLoad']
-    );
+foreach my $dynModule (qw(rwm.la back_relay.la)) {
 
-if ($olcModuleSearch->count() == 0) {
-    my $ldapAddResponse = $ldap->add(
-	'cn=module,cn=config',
-	attrs => [
-	    cn => 'module',
-	    objectClass => 'olcModuleList',
-	    olcModuleLoad => $RewriterModule	
-	]
-    );
-    if($ldapAddResponse->is_error) {
-	warn "`$RewriterModule` rwm module load error";
-	$errors ++;
+    my $olcModuleSearch = $ldap->search(
+        base => 'cn=config',
+        filter => "(&(cn=module{0})(olcModuleLoad={0}$dynModule))",
+        attributes => ['olcModuleLoad']
+        );
+
+    if ($olcModuleSearch->count() == 0) {
+        my $ldapAddResponse = $ldap->add(
+            'cn=module,cn=config',
+            attrs => [
+                cn => 'module',
+                objectClass => 'olcModuleList',
+                olcModuleLoad => $dynModule
+            ]
+        );
+        if($ldapAddResponse->is_error) {
+            warn "`$dynModule` module load error";
+            $errors ++;
+        }
     }
+
 }
 
 #
@@ -118,7 +120,7 @@ my @configChangeList = (
      ]],
 
     ['modify',
-     'olcDatabase={2}bdb,cn=config',
+     'olcDatabase={2}hdb,cn=config',
      replace => [
          olcSuffix => $LdapInternalSuffix,
      ]]
