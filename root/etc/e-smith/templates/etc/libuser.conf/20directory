@@ -9,11 +9,9 @@
     $conf->{'defaults'}->{'create_modules'} = 'ldap';
 
     #
-    # Other actions, append ldap:
+    # Other actions, set ldap-exclusive:
     #
-    if($conf->{'defaults'}->{'modules'} !~ /ldap/) {
-	$conf->{'defaults'}->{'modules'} .= ' ldap';
-    }
+    $conf->{'defaults'}->{'modules'} = 'ldap';
 
     '';	
 }
