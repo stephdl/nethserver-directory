@@ -64,7 +64,7 @@ foreach my $dynModule (qw(rwm.la back_relay.la)) {
 
     my $olcModuleSearch = $ldap->search(
         base => 'cn=config',
-        filter => "(&(cn=module{0})(olcModuleLoad={0}$dynModule))",
+        filter => "(&(cn=module{*})(olcModuleLoad={0}$dynModule))",
         attributes => ['olcModuleLoad']
         );
 
