@@ -1,4 +1,5 @@
 <?php
+/* @var $view \Nethgui\Renderer\Xhtml */
 
 $view->requireFlag($view::INSET_FORM);
 
@@ -46,3 +47,11 @@ $buttons->insert($view->button('Cancel', $view::BUTTON_CANCEL));
 
 echo $buttons;
 
+$actionId = $view->getUniqueId();
+$view->includeJavascript("
+jQuery(function($){
+    $('#${actionId}').on('nethguishow', function () {
+        $(this).find('.Tabs').tabs('select', 0);
+    });
+});
+");

@@ -1,6 +1,6 @@
 Name: nethserver-directory
 Summary: LDAP backend for user and group accounts
-Version: 2.2.0
+Version: 2.3.0
 Release: 1%{?dist}
 License: GPL
 Source0: %{name}-%{version}.tar.gz
@@ -14,6 +14,8 @@ Requires: perl-Crypt-Cracklib
 Requires: nethserver-base
 # send expiring password warnings: 
 Requires: mailx, postfix, anacron
+Obsoletes: nethserver-password
+Provides: nethserver-password
 
 BuildRequires: nethserver-devtools
 
@@ -46,6 +48,18 @@ rm -rf %{buildroot}
 %dir %{_nseventsdir}/%{name}-update
 
 %changelog
+* Thu Sep 24 2015 Davide Principi <davide.principi@nethesis.it> - 2.3.0-1
+- Obsolete nethserver-password by merging it into nethserver-directory - Enhancement #3260 [NethServer]
+
+* Mon Sep 14 2015 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.2.3-1
+- Avoid slapd restart when updating openldap-servers package - Enhancement #3253 [NethServer]
+
+* Wed May 20 2015 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.2.2-1
+- Localize "password expire" notifications - Enhancement #2887 [NethServer]
+
+* Tue May 19 2015 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.2.1-1
+- Create User tab not reset - Bug #2728 [NethServer]
+
 * Thu Apr 23 2015 Davide Principi <davide.principi@nethesis.it> - 2.2.0-1
 - Language packs support - Feature #3115 [NethServer]
 - Expired password visual notification - Feature #2980 [NethServer]

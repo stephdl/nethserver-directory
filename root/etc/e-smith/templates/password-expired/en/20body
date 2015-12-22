@@ -1,4 +1,0 @@
-You have { $daysLeft . ( $daysLeft == 1 ? ' day' : ' days' ) } left to change your password before your account will be blocked. 
-
-Available methods to change your password:
-
