@@ -49,6 +49,7 @@ event_actions('nethserver-directory-update', qw(
 	      initialize-default-databases               00
 	      nethserver-directory-conf                  10
 	      nethserver-directory-dit-setup             11
+              nethserver-directory-pam-setup             30
 	      nethserver-directory-password-policy       50
 ));
 
@@ -71,6 +72,13 @@ event_actions($_, qw(
 event_actions('password-policy-update',
 	      'nethserver-directory-password-policy' => '30');
 
+#
+# Template headers
+#
+
+safe_symlink(
+    "/etc/e-smith/templates-default/template-begin-pam",
+    "root/etc/e-smith/templates/etc/pam.d/system-auth-nh/template-begin");
 
 #--------------------------------------------------
 # password-modify event
