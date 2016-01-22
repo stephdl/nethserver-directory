@@ -72,6 +72,7 @@ while(<FH>) {
         'FirstName' => $firstName,
         'LastName' => $lastName,
         'MailStatus' => 'enabled',
+        'PassExpires' => 'yes'
         'Samba' => 'enabled'
     });
 
