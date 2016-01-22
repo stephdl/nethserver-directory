@@ -31,14 +31,14 @@
     $conf->{'auth'} = [
         'required pam_env.so',
         'sufficient pam_unix.so nullok try_first_pass',
-        'requisite pam_succeed_if.so uid >= 500 quiet',
+        'requisite pam_succeed_if.so uid >= 1000 quiet',
 	'required pam_deny.so'
 	];
     
     $conf->{'account'} = [
 	'required pam_unix.so',
 	'sufficient pam_localuser.so',
-	'sufficient pam_succeed_if.so uid < 500 quiet',	
+	'sufficient pam_succeed_if.so uid < 1000 quiet',
 	'required pam_permit.so'
 	];
 
