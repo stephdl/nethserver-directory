@@ -46,6 +46,9 @@ rm -rf %{buildroot}
 %doc scripts/import_users
 %doc scripts/fix_migration_home
 %dir %{_nseventsdir}/%{name}-update
+%ghost %attr(644,root,root) /etc/pam.d/password-auth-nh
+%ghost %attr(644,root,root) /etc/pam.d/system-auth-nh
+
 
 %changelog
 * Thu Sep 24 2015 Davide Principi <davide.principi@nethesis.it> - 2.3.0-1

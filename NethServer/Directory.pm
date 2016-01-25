@@ -289,7 +289,7 @@ sub getFreeId($)
     my $base = shift;
 
     if( ! $base ) {
-	$base = 500;
+	$base = 1000;
     }
 
     my $id = $base;
