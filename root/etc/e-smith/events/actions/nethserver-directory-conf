@@ -45,7 +45,18 @@ $slapd->start();
 #
 # Connect to LDAP server
 #
-my $ldap = NethServer::Directory->new or die("Cannot connect LDAP server");
+my $count = 0;
+my $ldap = undef;
+while( ! ($ldap = NethServer::Directory->new()) &&  $count < 10) {
+    warn("[NOTICE] waiting for slapd to become available.\n");
+    sleep(1);
+    $count ++;
+}
+
+if( ! $ldap) {
+   die("Cannot connect LDAP server");
+}
+
 my $NslcdUid = getpwnam('nslcd');
 my $LdapInternalSuffix = NethServer::Directory::getInternalSuffix(); 
 my $LdapDomainSuffix = NethServer::Directory::getDomainSuffix(); 
