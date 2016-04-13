@@ -35,7 +35,6 @@ my @certificates = (qw(
 #-------------------------------------------
 
 event_templates('nethserver-directory-update', qw(
-    /etc/nsswitch.conf
     /etc/openldap/ldap.conf
     /etc/libuser.conf
     /etc/nslcd.conf
