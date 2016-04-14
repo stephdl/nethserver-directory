@@ -11,11 +11,7 @@ Requires: nss-pam-ldapd
 Requires: openldap-clients, openldap-servers
 Requires: perl-LDAP
 Requires: perl-Crypt-Cracklib
-Requires: nethserver-base
-# send expiring password warnings: 
-Requires: mailx, postfix, anacron
-Obsoletes: nethserver-password
-Provides: nethserver-password
+Requires: nethserver-sssd
 
 BuildRequires: nethserver-devtools
 
@@ -29,7 +25,6 @@ LDAP backend for user and group accounts
 
 mkdir -p root%{perl_vendorlib}
 mv -v NethServer root%{perl_vendorlib}
-mv -v esmith root%{perl_vendorlib}
 
 perl createlinks
 %{makedocs}
