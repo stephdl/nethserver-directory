@@ -1,0 +1,13 @@
+#!/usr/bin/perl
+
+use strict;
+use NethServer::Directory;
+use esmith::ConfigDB;
+use User::grent;
+
+my $ldap = NethServer::Directory->new or die("No LDAP connection");
+
+$ldap->loadLdifSchema('ppolicy', '/etc/openldap/schema/ppolicy.ldif') || die("Could not load ppolicy LDIF schema");
+$ldap->loadLdifSchema('ppolicymodule', 'ppolicymodule.ldif') || die("Could not load ppolicymodule LDIF schema");
+$ldap->loadLdifSchema('ppolicyoverlay', 'ppolicyoverlay.ldif') || die("Could not load ppolicyoverlay LDIF schema");
+

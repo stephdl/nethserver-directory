@@ -35,20 +35,15 @@ my @certificates = (qw(
 #-------------------------------------------
 
 event_templates('nethserver-directory-update', qw(
-    /etc/nsswitch.conf
     /etc/openldap/ldap.conf
     /etc/libuser.conf
     /etc/nslcd.conf
-    /etc/pam.d/system-auth-nh
-    /etc/pam.d/password-auth-nh
-    /etc/sudoers
 ), @certificates);
 
 event_actions('nethserver-directory-update', qw(
 	      initialize-default-databases               00
 	      nethserver-directory-conf                  10
 	      nethserver-directory-dit-setup             11
-              nethserver-directory-pam-setup             30
 	      nethserver-directory-password-policy       50
 ));
 
@@ -71,13 +66,6 @@ event_actions($_, qw(
 event_actions('password-policy-update',
 	      'nethserver-directory-password-policy' => '30');
 
-#
-# Template headers
-#
-
-safe_symlink(
-    "/etc/e-smith/templates-default/template-begin-pam",
-    "root/etc/e-smith/templates/etc/pam.d/system-auth-nh/template-begin");
 
 #--------------------------------------------------
 # password-modify event
@@ -85,7 +73,6 @@ safe_symlink(
 event_actions('password-modify', qw(
               password-set 25
               user-activate 40
-              count-active-user-accounts 80
               password-cleanup 90
 ));
 
@@ -94,7 +81,6 @@ event_actions('password-modify', qw(
 #--------------------------------------------------
 event_actions('user-create', qw(
     user-create-unix 04
-    count-active-user-accounts 25
     user-group-modify 85
 ));
 
@@ -104,7 +90,6 @@ event_actions('user-create', qw(
 event_actions('user-delete', qw(
 	      user-delete-groups 75
 	      user-delete-unix 80
-	      count-active-user-accounts 90
 ));
 
 #--------------------------------------------------
@@ -122,7 +107,6 @@ event_actions('user-modify', qw(
 #--------------------------------------------------
 event_actions('user-lock', qw(
               user-lock-unix 15
-              count-active-user-accounts 25
 ));
 
 
@@ -131,7 +115,6 @@ event_actions('user-lock', qw(
 #--------------------------------------------------
 event_actions('user-unlock', qw(
               user-unlock-unix 15
-              count-active-user-accounts 25
 ));
 
 
@@ -160,41 +143,6 @@ event_actions('group-modify', qw(
 ));
 
 
-# actions for user-create validator
-validator_actions('user-create', qw(
-		  uniq-account 20
-		  user-length 30
-		  max-users 90
-));
-
-# actions for user-delete validator
-validator_actions('user-delete', qw(
-    account-removable 20
-));
-
-# actions for group-create validator
-validator_actions('group-create', qw(
-		  uniq-account 20
-		  group-length 30
-                  reserved-group 40
-));
-
-# actions for group-delete validator
-validator_actions('group-delete', qw(
-    account-removable 20
-));
-
-
-
-#--------------------------------------------------
-# password-expired event
-#--------------------------------------------------
-event_actions('password-expired', qw(
-    nethserver-directory-mail-password-expired 40
-));
-
-# Add warnpassexpire script in cron.daily jobs list -- Refs #1073
-safe_symlink('/sbin/e-smith/warnpassexpire', 'root/etc/cron.daily/warnpassexpire');
 
 #
 # certificate-update event
@@ -244,7 +192,6 @@ event_actions('post-restore-config', qw(
 # to initialize accounts.
 #
 event_actions('runlevel-adjust', qw(
-    nethserver-directory-init-admin    91
     create-default-accounts            95
 ));
 
