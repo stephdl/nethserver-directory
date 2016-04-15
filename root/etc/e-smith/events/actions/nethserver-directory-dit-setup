@@ -156,6 +156,9 @@ $ldap->enforceAccessDirective(
     ) || $errors++;
 
 
+# Enable SSSD enumerate
+$ldap->enforceAccessDirective("by anonymous read", "*");
+
 exit($errors);
 
 
