@@ -39,8 +39,7 @@ $ldap->loadLdifSchema('inetorgperson', '/etc/openldap/schema/inetorgperson.ldif'
 #
 my %OrganizationContact = $configDb->get('OrganizationContact')->props or {'Company' => 'Not Set'};
 
-my $nsstestId = getUserNameId('nsstest', 1001);
-my $localsId = getUserNameId('locals', $nsstestId + 1);
+my $localsId = getUserNameId('locals', 1001);
 
 my @entries = (
     [ $LdapInternalSuffix,
@@ -59,34 +58,6 @@ my @entries = (
 	  objectClass => ['top', 'organizationalUnit'],
 	  ou => 'Groups',
       ] ],
-    [ 'uid=nsstest,ou=People,' . $LdapInternalSuffix,
-      attrs => [
-          objectClass => [ 'posixAccount', 'shadowAccount', 'account' ], 
-	  qw(
-	    uid nsstest
-	    cn nsstest
-	    shadowMin 0
-	    shadowMax 99999
-	    shadowWarning 7
-	    shadowExpire -1
-	    shadowInactive -1
-	    userPassword {CRYPT}!!
-	    gecos LibNss_Test_Account
-	    shadowLastChange 0
-	    shadowFlag -1
-	    homeDirectory /var/lib/nethserver/home/nsstest
-	    loginShell /bin/false
-      ),
-      gidNumber => $nsstestId,
-      uidNumber => $nsstestId,
-    ] ],
-    [ 'cn=nsstest,ou=Groups,' . $LdapInternalSuffix,
-      attrs => [
-	 gidNumber => $nsstestId,
-	  qw(
-	    objectClass posixGroup
-	    cn nsstest
-    )] ],   
     [ 'uid=locals,ou=People,' . $LdapInternalSuffix,
       attrs => [
           objectClass => [ 'posixAccount', 'shadowAccount', 'account' ], 
