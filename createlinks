@@ -94,7 +94,7 @@ event_actions('user-delete', qw(
 # actions for user-lock event
 #--------------------------------------------------
 event_actions('user-lock', qw(
-              user-lock-unix 15
+              nethserver-directory-user-lock 15
 ));
 
 
@@ -102,7 +102,7 @@ event_actions('user-lock', qw(
 # actions for user-lock event
 #--------------------------------------------------
 event_actions('user-unlock', qw(
-              user-unlock-unix 15
+              nethserver-directory-user-unlock 15
 ));
 
 

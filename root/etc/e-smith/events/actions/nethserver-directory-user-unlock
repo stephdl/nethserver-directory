@@ -18,36 +18,41 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
 #----------------------------------------------------------------------
 
-package esmith;
 
 use strict;
+use esmith::db;
+use esmith::ConfigDB;
 use Errno;
-use esmith::AccountsDB;
-use IO::File;
 use English;
 
-my $a = esmith::AccountsDB->open or die "Could not open accounts db";
+my $event = shift;
+my $userName = shift;
 
-my $event = $ARGV [0];
+if( ! $userName ) {
+    warn("[ERROR] Missing username argument");
+    exit(1);
+}
 
-defined $ARGV[1] || die "No user specied";
-my $user = $ARGV[1];
+my $db = esmith::ConfigDB->open_ro() || die("Could not open Config DB");
+my $passwd = esmith::db->open("NethServer::Database::Passwd") || die("Could not open Passwd DB");
 
-lock_user($user);
+
+# Handle users with and without domain part
+my $account = undef;
+if ($userName =~ /@/) {
+    $account = $passwd->get($userName);
+    $userName = (split(/@/,$userName))[0];
+} else {
+    my $domain = $db->get_value('DomainName');
+    $account = $passwd->get($userName.'@'.$domain);
+}
+if( ! $account) {
+    die "[ERROR] Account `$userName` not found.\n";
+}
+
+
+system("/usr/sbin/lusermod", "-U", $userName) == 0
+        or die "Error running /usr/sbin/lusermod command to lock account $userName";
 
 exit 0;
 
-sub lock_user
-{
-    my ($userName) = @_;
-    #------------------------------------------------------------
-    # Lock the user account in all authentication databases
-    #------------------------------------------------------------
-
-    my $u = $a->get($userName) or die "No account record for user $userName";
-
-    system("/usr/sbin/lusermod", "-L", $userName) == 0
-        or die "Error running /usr/sbin/lusermod command to lock account $userName";
-
-    $u->set_prop('__state', 'locked');
-}
