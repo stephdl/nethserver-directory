@@ -86,8 +86,8 @@ event_actions('user-create', qw(
 # actions for user-delete event
 #--------------------------------------------------
 event_actions('user-delete', qw(
-	      user-delete-groups 75
-	      user-delete-unix 80
+	      nethserver-directory-user-delete-groups 75
+	      nethserver-directory-user-delete 80
 ));
 
 #--------------------------------------------------

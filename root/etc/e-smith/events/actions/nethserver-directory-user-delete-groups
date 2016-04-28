@@ -1,0 +1,48 @@
+#!/usr/bin/perl -w
+
+use strict;
+use esmith::db;
+use NethServer::Database::Group;
+
+my $event = shift;
+my $userName = shift;
+
+die "Event name argument missing." unless defined ($event);
+die "Username argument missing." unless defined ($userName);
+
+my $errors = 0;
+tie my %gdb, 'NethServer::Database::Group';
+
+# Handle users with and without domain part
+my $ldapAccount = $userName;
+if ($userName =~ /@/) {
+    $ldapAccount = (split(/@/,$userName))[0];
+}
+
+foreach my $group (keys %gdb) {
+    my $members  = db_get_prop(\%gdb, $group, 'members') || '';
+    if ($group =~ /@/) {
+        $group = (split(/@/,$group))[0];
+    }
+    if ($members =~ $userName) { # remove users from extra groups
+        system("/usr/sbin/lgroupmod -m '$ldapAccount' '$group'");
+        if ($? != 0) {
+            warn "Failed to remove $userName user from $group group.\n";
+            $errors ++;
+        }
+    }
+    if ($group eq $ldapAccount) { # remove primary groups
+        system("/usr/sbin/lgroupdel $group");
+        if ($? != 0) {
+            warn "Failed to remove $userName primary group $group.\n";
+            $errors ++;
+        }
+    }
+}
+
+if ($errors != 0)
+{
+    die "Failed to remove $userName account from groups.\n";
+}
+
+exit (0);

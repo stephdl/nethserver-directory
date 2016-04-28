@@ -21,14 +21,10 @@
 # Please visit our web site www.mitel.com/sme/ for details.
 #----------------------------------------------------------------------
 
-package esmith;
-
 use strict;
-use Errno;
-use esmith::util;
 
-my $event = $ARGV [0];
-my $userName = $ARGV [1];
+my $event = shift;
+my $userName = shift;;
 
 #------------------------------------------------------------
 # Delete the Unix account.
@@ -36,7 +32,10 @@ my $userName = $ARGV [1];
 
 die "Username argument missing." unless defined ($userName);
 
-esmith::util::cancelUserPassword ($userName);
+# Handle users with and without domain part
+if ($userName =~ /@/) {
+    $userName = (split(/@/,$userName))[0];
+}
 
 my $discard = `/usr/sbin/luserdel -r '$userName'`;
 if ($? != 0)
