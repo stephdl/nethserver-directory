@@ -57,8 +57,15 @@ if( ! $contactRecord ) {
     exit(1);
 }
 
-my $domain = $db->get_value('DomainName');
-my $account = $passwd->get($userName.'@'.$domain);
+# Handle users with and without domain part
+my $account = undef;
+if ($userName =~ /@/) {
+    $account = $passwd->get($userName);
+    $userName = (split(/@/,$userName))[0];
+} else {
+    my $domain = $db->get_value('DomainName');
+    $account = $passwd->get($userName.'@'.$domain);
+}
 if( ! $account) {
     die "[ERROR] Account `$userName` not found.\n";
 }
@@ -75,11 +82,17 @@ if( ! $cn) {
     exit(0);
 }
 
+my $gecos = $cn;
+# gecos must be 7bit ASCII/ldap IA5String. Refs #911
+$gecos =~ s/[^\x20-\x7F]//g;
+
 if($cn) {
     system($lusermod, 
 	   '--surname=' . $lastName, 
 	   '--givenname=' . $firstName, 
 	   '--commonname=' . $cn,
+           '--shell=' . $shell,
+           '--gecos=' . $gecos,
 	   $userName);
 }
 if($? != 0) {

@@ -91,16 +91,6 @@ event_actions('user-delete', qw(
 ));
 
 #--------------------------------------------------
-# actions for user-modify event
-#--------------------------------------------------
-event_actions('user-modify', qw(
-              user-modify-unix 15
-              user-group-modify 85
-));
-
-
-
-#--------------------------------------------------
 # actions for user-lock event
 #--------------------------------------------------
 event_actions('user-lock', qw(
