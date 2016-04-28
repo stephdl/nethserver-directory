@@ -29,8 +29,10 @@ use Errno;
 my $event = $ARGV [0];
 my $groupName = $ARGV [1] or die "Groupname argument missing.";
 
-system("/usr/sbin/luserdel", '-G', $groupName) == 0
-    or die "Failed to delete dummy user for group $groupName.\n";
+# Handle groups with and without domain part
+if ($groupName =~ /@/) {
+    $groupName = (split(/@/,$groupName))[0];
+}
 
 system("/usr/sbin/lgroupdel", $groupName) == 0
     or die "Failed to delete group $groupName.\n";

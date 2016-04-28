@@ -37,6 +37,7 @@ if ($userName =~ /@/) {
     $userName = (split(/@/,$userName))[0];
 }
 
+# this also removes user primary group
 my $discard = `/usr/sbin/luserdel -r '$userName'`;
 if ($? != 0)
 {

@@ -3,6 +3,8 @@
 use strict;
 use esmith::db;
 use NethServer::Database::Group;
+use esmith::ConfigDB;
+use NethServer::Directory;
 
 my $event = shift;
 my $userName = shift;
@@ -12,30 +14,35 @@ die "Username argument missing." unless defined ($userName);
 
 my $errors = 0;
 tie my %gdb, 'NethServer::Database::Group';
+my $ldap = NethServer::Directory->new() || die "Could not connect NethServer LDAP backend";
+my $db = esmith::ConfigDB->open_ro() || die("Could not open Config DB");
 
 # Handle users with and without domain part
 my $ldapAccount = $userName;
 if ($userName =~ /@/) {
     $ldapAccount = (split(/@/,$userName))[0];
+} else {
+    my $domain = $db->get_value('DomainName');
+    $userName = $userName . '@'. $domain;
 }
 
 foreach my $group (keys %gdb) {
-    my $members  = db_get_prop(\%gdb, $group, 'members') || '';
+    my $members  = db_get_prop(\%gdb, $group, 'members') || next; # skip empty groups
     if ($group =~ /@/) {
         $group = (split(/@/,$group))[0];
     }
-    if ($members =~ $userName) { # remove users from extra groups
-        system("/usr/sbin/lgroupmod -m '$ldapAccount' '$group'");
-        if ($? != 0) {
-            warn "Failed to remove $userName user from $group group.\n";
-            $errors ++;
+    if ($members =~ /$userName/) { # remove users from extra groups
+        # Can't user lgroupmod -m since it doesn't work if there is only one
+        # member inside the group
+        my @tmp;
+        foreach (split(/\s/, $members)) {
+            next if $_ =~ /$userName/; # skip deleted users
+            $_ =~ s/(@.*)$//; # remove domain part
+            push(@tmp, $_);
         }
-    }
-    if ($group eq $ldapAccount) { # remove primary groups
-        system("/usr/sbin/lgroupdel $group");
-        if ($? != 0) {
-            warn "Failed to remove $userName primary group $group.\n";
-            $errors ++;
+        if($ldap->modify("cn=$group,ou=Groups,dc=directory,dc=nh", replace => [memberUid => \@tmp])->is_error()) {
+            warn "Failed to remove $userName user from $group group.\n";
+            $errors++;
         }
     }
 }
