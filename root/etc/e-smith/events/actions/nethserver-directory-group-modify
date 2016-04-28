@@ -1,0 +1,59 @@
+#!/usr/bin/perl -w
+
+#----------------------------------------------------------------------
+# copyright (C) 2002-2005 Mitel Networks Corporation
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 		
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 		
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+# 
+# Technical support for this program is available from Mitel Networks 
+# Please visit our web site www.mitel.com/sme/ for details.
+#----------------------------------------------------------------------
+
+package esmith;
+
+use strict;
+use Errno;
+use esmith::ConfigDB;
+use NethServer::Directory;
+
+my $db = esmith::ConfigDB->open_ro() || die("Could not open Config DB");
+my $ldap = NethServer::Directory->new() || die "Could not connect NethServer LDAP backend";
+my $gdb = esmith::db->open("NethServer::Database::Group") || die("Could not open Group DB");
+
+my $errors = 0;
+my $event = shift || die "Event name argument is missing\n";
+my $groupName = shift || die "Group name argument is missing\n";
+my $description = shift || ""; # description is ignored
+my @members = @ARGV;
+
+# Handle users with and without domain part
+my $account = undef;
+if ($groupName =~ /@/) {
+    $account = $gdb->get($groupName);
+    $groupName = (split(/@/,$groupName))[0];
+} else {
+    my $domain = $db->get_value('DomainName');
+    $account = $gdb->get($groupName.'@'.$domain);
+}
+if( ! $account) {
+    die "[ERROR] Group `$groupName` not found.\n";
+}
+
+if($ldap->modify("cn=$groupName,ou=Groups,dc=directory,dc=nh", replace => [memberUid => \@members])->is_error()) {
+    warn "[ERROR] failed to set members of group `$groupName`\n";
+    $errors++;
+}
+
+exit ($errors == 0 ? 0 : 1);
