@@ -55,7 +55,6 @@ event_services('nethserver-directory-update', qw(
 # create/modify event
 event_actions($_, qw(
     nethserver-directory-user-modify     25
-    nethserver-directory-password-policy 40
 )) foreach(qw(
     user-create 
     user-modify
