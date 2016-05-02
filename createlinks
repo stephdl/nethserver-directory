@@ -69,9 +69,8 @@ event_actions('password-policy-update',
 # password-modify event
 #--------------------------------------------------
 event_actions('password-modify', qw(
-              password-set 25
-              user-activate 40
-              password-cleanup 90
+              nethserver-directory-password-set 30
+              nethserver-directory-user-unlock 40
 ));
 
 #--------------------------------------------------
