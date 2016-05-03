@@ -28,11 +28,14 @@ use NethServer::Directory::LDAP;
 use NethServer::Directory;
 
 my $event = shift;
-my $userName = shift;
+
 my $errors = 0;
 
 my $accountsDb = esmith::AccountsDB->open_ro || die("Could not open AccountsDB.\n");
 my $configDb = esmith::ConfigDB->open_ro || die("Could not open ConfigDB.\n");
+my $ldap = NethServer::Directory::LDAP->new;
+my $domain = NethServer::Directory::getInternalDomain();
+my $base = NethServer::Directory::getInternalSuffix();
 
 my $contactRecord = $configDb->get('OrganizationContact');
 
@@ -41,49 +44,36 @@ if( ! $contactRecord ) {
     exit(1);
 }
 
-my @accounts = ();
 
-if($userName) {
-    @accounts = $accountsDb->get($userName);
-} else {
-    @accounts = $accountsDb->users();
+my %accounts;
+
+my $result = $ldap->search(
+    base => "ou=People,$base",
+    filter => "(objectClass=inetOrgPerson)",
+    attributes => ['uid']
+);
+my @entries = $result->entries;
+foreach my $entr ( @entries ) {
+    my %attrs;
+    my $uid = $entr->get_value ( 'uid' );
+    $attrs{'telephoneNumber'} = $entr->get_value ( 'telephoneNumber' ) || $contactRecord->prop('PhoneNumber') || "";
+    $attrs{'o'} = $entr->get_value ( 'o' ) || $contactRecord->prop('Company') || "";
+    $attrs{'ou'} = $entr->get_value ( 'ou' ) || $contactRecord->prop('Department') || "";
+    $attrs{'l'} = $entr->get_value ( 'l' ) || $contactRecord->prop('City') || "";
+    $attrs{'street'} = $entr->get_value ( 'street' ) || $contactRecord->prop('Street') || "";
+    $accounts{$uid} = \%attrs;
 }
 
-foreach my $account (@accounts) {
-
-    my $userName = $account->key;
-
-    if($account->prop('type') ne 'user') {
-	warn("[ERROR] Invalid record `$userName` type: " . $account->type);
-	$errors ++;
-	next;
-    }
+foreach my $userName (keys %accounts) {
 
     #------------------------------------------------------------
     # Update LDAP inetOrgPerson database entry.
     #------------------------------------------------------------
-    my $ldap = NethServer::Directory::LDAP->new;
-    my $domain = NethServer::Directory::getInternalDomain();
-    my $base = NethServer::Directory::getInternalSuffix();
 
-
-    my @attrs = ();
+    my $attrs = $accounts{$userName};
     my $dn = "uid=$userName,ou=People,$base";
 
-    my $phone = $account->prop('PhoneNumber') || $contactRecord->prop('PhoneNumber') || '';
-    my $company = $account->prop('Company') || $contactRecord->prop('Company') || '';
-    my $dept = $account->prop('Department') || $contactRecord->prop('Department') || '';
-    my $city = $account->prop('City') || $contactRecord->prop('City') || '';
-    my $street = $account->prop('Street') || $contactRecord->prop('Street') || '';
-
-    # push @attrs, (mail => $email);
-    push @attrs, (telephoneNumber => $phone) unless $phone =~ /^\s*$/;
-    push @attrs, (o => $company) unless $company =~ /^\s*$/;
-    push @attrs, (ou => $dept) unless $dept =~ /^\s*$/;
-    push @attrs, (l => $city) unless $city =~ /^\s*$/;
-    push @attrs, (street => $street) unless $street =~ /^\s*$/;
-
-    my $result = $ldap->modify ($dn, replace => \@attrs);
+    my $result = $ldap->modify ($dn, replace => $attrs);
     if($result->is_error()) {
 	warn("[ERROR] Failed to set contact info on entry `$dn`: " . $result->error) ;
 	$errors ++;

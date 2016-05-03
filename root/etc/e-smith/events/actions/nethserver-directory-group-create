@@ -1,7 +1,7 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 
 #
-# Copyright (C) 2013 Nethesis S.r.l.
+# Copyright (C) 2016 Nethesis S.r.l.
 # http://www.nethesis.it - support@nethesis.it
 # 
 # This script is part of NethServer.
@@ -21,21 +21,20 @@
 #
 
 use strict;
-use NethServer::Service;
+
+my $errors = 0;
+my $event = shift || die "Event name argument is missing\n";
+my $groupName = shift || die "Group name argument is missing\n";
+my $description = shift || "";
+my @members = @ARGV;
 
 
-#
-# Ensure slapd is running after a full stop/start
-#
-my $slapd = NethServer::Service->new('slapd');
-if($slapd->is_running()) {
-    $slapd->stop();
-}
-$slapd->start() or die("[ERROR] Could not restart slapd\n");
+# Create the user's unique group first, so we can set the gid
+# explicitly on the corresponding user account.
+system(
+    "/usr/sbin/lgroupadd",
+    $groupName
+    ) == 0 or die "Failed to create group $groupName.\n";   
 
-my $entry = undef;
-my $attempt = 0;
 
-sleep(1);
-
-exit(0);
+exit ($errors == 0 ? 0 : 1);

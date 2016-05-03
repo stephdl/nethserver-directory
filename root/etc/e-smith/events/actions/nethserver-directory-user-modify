@@ -22,51 +22,58 @@
 #
 
 use strict;
-use esmith::AccountsDB;
-use NethServer::Directory::LDAP;
-use NethServer::Directory;
+use NethServer::Database::Passwd;
+use esmith::ConfigDB;
 
-my $event = $ARGV[0];
-my $userName = $ARGV[1] || '';
-my $errors = 0;
+my $event = shift;
+my $userName = shift;
+my $name = shift || '';
+my $shell = shift || '/usr/libexec/openssh/sftp-server';
 
-my $accountsDb = esmith::AccountsDB->open_ro || die("Could not open AccountsDB.\n");
+my $db = esmith::ConfigDB->open_ro() || die("Could not open Config DB");
+my $passwd = esmith::db->open("NethServer::Database::Passwd") || die("Could not open Passwd DB");
+my $contactRecord = $db->get('OrganizationContact');
 
-my $account = $accountsDb->get($userName);
+
+if( ! $userName ) {
+    warn("[ERROR] Missing username argument");
+    exit(1);
+}
+
+if( ! $contactRecord ) {
+    warn("[ERROR] Could not open OrganizationContact record");
+    exit(1);
+}
+
+# Handle users with and without domain part
+my $account = undef;
+if ($userName =~ /@/) {
+    $account = $passwd->get($userName);
+    $userName = (split(/@/,$userName))[0];
+} else {
+    my $domain = $db->get_value('DomainName');
+    $account = $passwd->get($userName.'@'.$domain);
+}
 if( ! $account) {
     die "[ERROR] Account `$userName` not found.\n";
 }
 
-if($account->prop('type') ne 'user') {
-    die("[ERROR] $userName is not a user account\n");
-}
+$name =~ s/^\s+//g;
+$name =~ s/\s+$//g;
 
+my $gecos = $name;
+# gecos must be 7bit ASCII/ldap IA5String. Refs #911
+$gecos =~ s/[^\x20-\x7F]//g;
 
-# Update First and Last Name fields through libuser
-my $lusermod = '/usr/sbin/lusermod';
-
-my $firstName = $account->prop('FirstName') || '';
-my $lastName = $account->prop('LastName') || '';
-my $cn = $firstName . ' ' . $lastName;
-
-$cn =~ s/^\s+//g;
-$cn =~ s/\s+$//g;
-
-if( ! $cn) {
-    exit(0);
-}
-
-if($cn) {
-    system($lusermod, 
-	   '--surname=' . $lastName, 
-	   '--givenname=' . $firstName, 
-	   '--commonname=' . $cn,
-	   $userName);
-}
-
+system('/usr/sbin/lusermod',
+   '--commonname=' . $name,
+   '--shell=' . $shell,
+   '--gecos=' . $gecos,
+   $userName);
 
 if($? != 0) {
-    die("[ERROR] Failed to modify user `$userName` name fields!\n");
+    die("[ERROR] Failed to modify user `$userName` fields!\n");
 }
+
 
 exit(0);

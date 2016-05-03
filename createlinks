@@ -52,13 +52,10 @@ event_services('nethserver-directory-update', qw(
 ));
 
 # Synchronize LDAP database and user password aging on user
-# create/modify event
+# modify event
 event_actions($_, qw(
-    nethserver-directory-organization-modify 20
     nethserver-directory-user-modify     25
-    nethserver-directory-password-policy 40
 )) foreach(qw(
-    user-create 
     user-modify
 ));
 
@@ -71,42 +68,30 @@ event_actions('password-policy-update',
 # password-modify event
 #--------------------------------------------------
 event_actions('password-modify', qw(
-              password-set 25
-              user-activate 40
-              password-cleanup 90
+              nethserver-directory-password-set 30
+              nethserver-directory-user-unlock 40
 ));
 
 #--------------------------------------------------
 # actions for user-create event
 #--------------------------------------------------
 event_actions('user-create', qw(
-    user-create-unix 04
-    user-group-modify 85
+    nethserver-directory-user-create 04
 ));
 
 #--------------------------------------------------
 # actions for user-delete event
 #--------------------------------------------------
 event_actions('user-delete', qw(
-	      user-delete-groups 75
-	      user-delete-unix 80
+	      nethserver-directory-user-delete 70
+	      nethserver-directory-user-delete-groups 80
 ));
-
-#--------------------------------------------------
-# actions for user-modify event
-#--------------------------------------------------
-event_actions('user-modify', qw(
-              user-modify-unix 15
-              user-group-modify 85
-));
-
-
 
 #--------------------------------------------------
 # actions for user-lock event
 #--------------------------------------------------
 event_actions('user-lock', qw(
-              user-lock-unix 15
+              nethserver-directory-user-lock 15
 ));
 
 
@@ -114,7 +99,7 @@ event_actions('user-lock', qw(
 # actions for user-lock event
 #--------------------------------------------------
 event_actions('user-unlock', qw(
-              user-unlock-unix 15
+              nethserver-directory-user-unlock 15
 ));
 
 
@@ -122,8 +107,8 @@ event_actions('user-unlock', qw(
 # actions for group-create event
 #--------------------------------------------------
 event_actions('group-create', qw(
-	      group-create-unix 04
-	      group-modify-unix 20
+	      nethserver-directory-group-create 04
+	      nethserver-directory-group-modify 20
 ));
 
 
@@ -131,7 +116,7 @@ event_actions('group-create', qw(
 # actions for group-delete event
 #--------------------------------------------------
 event_actions('group-delete', qw(
-              group-delete-unix 15
+              nethserver-directory-group-delete 15
 ));
 
 
@@ -139,7 +124,7 @@ event_actions('group-delete', qw(
 # actions for group-modify event
 #--------------------------------------------------
 event_actions('group-modify', qw(
-              group-modify-unix 15
+              nethserver-directory-group-modify 15
 ));
 
 

@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 #----------------------------------------------------------------------
-# copyright (C) 2001-2006 Mitel Networks Corporation
+# copyright (C) 1999-2005 Mitel Networks Corporation
 # 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,38 +16,32 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+# 
+# Technical support for this program is available from Mitel Networks 
+# Please visit our web site www.mitel.com/sme/ for details.
 #----------------------------------------------------------------------
 
-package esmith;
-
 use strict;
-use Errno;
-use esmith::AccountsDB;
-use IO::File;
-use English;
 
-my $a = esmith::AccountsDB->open or die "Could not open accounts db";
+my $event = shift;
+my $userName = shift;;
 
-my $event = $ARGV [0];
+#------------------------------------------------------------
+# Delete the Unix account.
+#------------------------------------------------------------
 
-defined $ARGV[1] || die "No user specied";
-my $user = $ARGV[1];
+die "Username argument missing." unless defined ($userName);
 
-lock_user($user);
-
-exit 0;
-
-sub lock_user
-{
-    my ($userName) = @_;
-    #------------------------------------------------------------
-    # Lock the user account in all authentication databases
-    #------------------------------------------------------------
-
-    my $u = $a->get($userName) or die "No account record for user $userName";
-
-    system("/usr/sbin/lusermod", "-L", $userName) == 0
-        or die "Error running /usr/sbin/lusermod command to lock account $userName";
-
-    $u->set_prop('__state', 'locked');
+# Handle users with and without domain part
+if ($userName =~ /@/) {
+    $userName = (split(/@/,$userName))[0];
 }
+
+# this also removes user primary group
+my $discard = `/usr/sbin/luserdel -r '$userName'`;
+if ($? != 0)
+{
+    die "Failed to delete account $userName.\n";
+}
+
+exit (0);
