@@ -35,7 +35,6 @@ my $gdb = esmith::db->open("NethServer::Database::Group") || die("Could not open
 my $errors = 0;
 my $event = shift || die "Event name argument is missing\n";
 my $groupName = shift || die "Group name argument is missing\n";
-my $description = shift || ""; # description is ignored
 my @members = @ARGV;
 
 # Handle users with and without domain part

@@ -25,7 +25,6 @@ use strict;
 my $errors = 0;
 my $event = shift || die "Event name argument is missing\n";
 my $groupName = shift || die "Group name argument is missing\n";
-my $description = shift || "";
 my @members = @ARGV;
 
 
