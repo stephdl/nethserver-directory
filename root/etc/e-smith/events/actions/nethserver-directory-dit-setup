@@ -58,27 +58,6 @@ my @entries = (
 	  objectClass => ['top', 'organizationalUnit'],
 	  ou => 'Groups',
       ] ],
-    [ 'uid=locals,ou=People,' . $LdapInternalSuffix,
-      attrs => [
-          objectClass => [ 'posixAccount', 'shadowAccount', 'account' ], 
-	  qw(
-	    uid locals
-	    cn locals
-	    shadowMin 0
-	    shadowMax 99999
-	    shadowWarning 7
-	    shadowExpire -1
-	    shadowInactive -1
-	    userPassword {CRYPT}!!
-	    shadowLastChange 0
-	    shadowFlag -1
-	    homeDirectory /var/lib/nethserver/home/locals
-	    loginShell /bin/false
-      ),
-	  gecos => "Local users",
-	  gidNumber => $localsId,
-	  uidNumber => $localsId,
-    ] ],
     [ 'cn=locals,ou=Groups,' . $LdapInternalSuffix,
       attrs => [
 	  gidNumber => $localsId,	  
@@ -112,6 +91,7 @@ $ldap->enforceAccessDirective(
 	 qq(by dn.exact="cn=pam,$LdapInternalSuffix" peername.path="/var/run/ldapi" write),
 	 qq(by dn.exact="cn=libuser,$LdapInternalSuffix" peername.ip="127.0.0.1" write),
 	 qq(by users ssf=71 read),
+         qq(by anonymous read), # Enable SSSD enumerate
 	 qq(by * none)),
     '*'
     ) || $errors++;
@@ -127,8 +107,6 @@ $ldap->enforceAccessDirective(
     ) || $errors++;
 
 
-# Enable SSSD enumerate
-$ldap->enforceAccessDirective("by anonymous read", "*");
 
 exit($errors);
 
