@@ -24,26 +24,14 @@
 use strict;
 use NethServer::Database::Passwd;
 use esmith::ConfigDB;
-use NethServer::Directory::LDAP;
-use NethServer::Directory;
 
 my $event = shift;
 my $userName = shift;
+my $name = shift || '';
 my $shell = shift || '/usr/libexec/openssh/sftp-server';
-my $firstName = shift || '';
-my $lastName = shift || '';
-my $phone = shift || '';
-my $company = shift || '';
-my $dept = shift || '';
-my $city = shift || '';
-my $street = shift || '';
-
-my $errors = 0;
 
 my $db = esmith::ConfigDB->open_ro() || die("Could not open Config DB");
 my $passwd = esmith::db->open("NethServer::Database::Passwd") || die("Could not open Passwd DB");
-my $ldap = NethServer::Directory::LDAP->new;
-my $base = NethServer::Directory::getInternalSuffix();
 my $contactRecord = $db->get('OrganizationContact');
 
 
@@ -70,60 +58,22 @@ if( ! $account) {
     die "[ERROR] Account `$userName` not found.\n";
 }
 
-# Update First and Last Name fields through libuser
-my $lusermod = '/usr/sbin/lusermod';
+$name =~ s/^\s+//g;
+$name =~ s/\s+$//g;
 
-my $cn = $firstName . ' ' . $lastName;
-
-$cn =~ s/^\s+//g;
-$cn =~ s/\s+$//g;
-
-if( ! $cn) {
-    exit(0);
-}
-
-my $gecos = $cn;
+my $gecos = $name;
 # gecos must be 7bit ASCII/ldap IA5String. Refs #911
 $gecos =~ s/[^\x20-\x7F]//g;
 
-if($cn) {
-    system($lusermod, 
-	   '--surname=' . $lastName, 
-	   '--givenname=' . $firstName, 
-	   '--commonname=' . $cn,
-           '--shell=' . $shell,
-           '--gecos=' . $gecos,
-	   $userName);
-}
+system('/usr/sbin/lusermod',
+   '--commonname=' . $name,
+   '--shell=' . $shell,
+   '--gecos=' . $gecos,
+   $userName);
+
 if($? != 0) {
-    $errors ++;
-}
-
-# Update extra info directly into LDAP tree
-
-my @attrs = ();
-my $dn = "uid=$userName,ou=People,$base";
-
-$phone = $phone || $contactRecord->prop('PhoneNumber') || '';
-$company = $company || $contactRecord->prop('Company') || '';
-$dept = $dept || $contactRecord->prop('Department') || '';
-$city = $city || $contactRecord->prop('City') || '';
-$street = $street || $contactRecord->prop('Street') || '';
-
-push @attrs, (telephoneNumber => $phone) unless $phone =~ /^\s*$/;
-push @attrs, (o => $company) unless $company =~ /^\s*$/;
-push @attrs, (ou => $dept) unless $dept =~ /^\s*$/;
-push @attrs, (l => $city) unless $city =~ /^\s*$/;
-push @attrs, (street => $street) unless $street =~ /^\s*$/;
-
-my $result = $ldap->modify ($dn, replace => \@attrs);
-if($result->is_error()) {
-    warn("[ERROR] Failed to set contact info on entry `$dn`: " . $result->error) ;
-    $errors ++;
-}
-
-if ($errors) {
     die("[ERROR] Failed to modify user `$userName` fields!\n");
 }
+
 
 exit(0);

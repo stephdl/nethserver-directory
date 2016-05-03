@@ -28,7 +28,6 @@ use NethServer::Database::Passwd;
 use File::Path;
 
 my $conf = esmith::ConfigDB->open_ro() || die("Could not open Config DB");
-my $directory = NethServer::Directory->new() || die("Could not connect LDAP");
 my $passwd = esmith::db->open("NethServer::Database::Passwd") || die("Could not open Passwd DB");
 my $homeDirPrefix = '/var/lib/nethserver/home/';
 
@@ -36,6 +35,7 @@ my $errors = 0;
 
 my $event = shift;
 my $userName = shift;
+my $name = shift || '';
 my $shell = shift || '/usr/libexec/openssh/sftp-server';
 
 if( ! defined ($userName)) {
@@ -52,43 +52,31 @@ if( ! -d $homeDirPrefix) {
     File::Path::make_path($homeDirPrefix);
 }
 
-# Create the user's unique group first
-system(
-	"/usr/sbin/lgroupadd",
-	$userName
-    ) == 0 or die "Failed to create user private group account `$userName`.\n";
+$name =~ s/^\s+//g;
+$name =~ s/\s+$//g;
+
+my $gecos = $name;
+# gecos must be 7bit ASCII/ldap IA5String. Refs #911
+$gecos =~ s/[^\x20-\x7F]//g;
+
 
 # Now create the user account. `--surname` triggers inetOrgPerson
 # schema in ldapEntry and is required for nethserver-directory to
 # work.
 system(
 	"/usr/sbin/luseradd",
-        '--surname', $userName,
+        '-g', 'locals',
+        '-n',
 	'-d', $homeDirPrefix . $userName,
 	"-k", "/etc/skel/",
 	"-s", $shell,
+	'--commonname=' . $name ,
+   	'--gecos=' . $gecos,
 	$userName
     ) == 0 or die "Failed to create user account `$userName`.\n";
 
 
 # Set initial permissions on user's root directory.
 chmod 0700, $homeDirPrefix . $userName;
-
-# TODO: must be reimplemented
-if(system('/usr/sbin/lusermod', '-L', $userName) != 0) {
-    warn("Could not lock password for user `$userName`.\n");
-    $errors ++;
-}
-
-
-if( ! $directory->addGroupMembers($userName, $userName)) {
-    warn "[ERROR] failed to set $userName as member of its primary group\n";
-    $errors ++;
-}
-
-if( ! $directory->addGroupMembers('locals', $userName)) {
-    warn "[ERROR] failed to add member to \"locals\" group\n";
-    $errors ++;
-}
 
 exit ($errors == 0 ? 0 : 1);
