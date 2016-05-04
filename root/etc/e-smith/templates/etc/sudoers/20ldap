@@ -1,0 +1,10 @@
+{
+    #
+    # 20ldap
+    #
+    push @cmnd_alias_httpd_admin, qw(
+        /usr/bin/cat /var/lib/nethserver/secrets/libuser
+    );
+    '';
+}
+
