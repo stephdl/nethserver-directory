@@ -2,9 +2,8 @@
     #
     # 20ldap
     #
-    push @cmnd_alias_httpd_admin, qw(
-        /usr/bin/cat /var/lib/nethserver/secrets/libuser
-    );
+    push @cmnd_alias_httpd_admin, "/usr/bin/cat /var/lib/nethserver/secrets/libuser";
+    push @cmnd_alias_httpd_admin, "/usr/libexec/nethserver/ldap-list-users";
     '';
 }
 

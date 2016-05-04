@@ -53,12 +53,16 @@ my @entries = $nsDirectory->search(
 foreach  my $entry ( @entries ) {
     my $locked = 0;
     my $expired = 0;
+    my $new = 0;
     my $uid = $entry->get_value('uid');
     my $pass = $entry->get_value('userPassword');
     my $shadowMax = $entry->get_value('shadowMax');
     my $shadowLastChange = $entry->get_value('shadowLastChange');
     if ($pass =~ /\{CRYPT\}\!+/) {
         $locked = 1;
+    }
+    if ($pass eq "{CRYPT}!!") {
+        $new = 1;
     }
     if ($shadowMax < 99999) {
         my $t = $shadowLastChange * 24 * 60 * 60;
@@ -69,6 +73,7 @@ foreach  my $entry ( @entries ) {
     }
     $users{$uid.'@'.$domain}{'locked'} = $locked;
     $users{$uid.'@'.$domain}{'expired'} = $expired;
+    $users{$uid.'@'.$domain}{'new'} = $new;
 }
 
 print to_json(\%users);
