@@ -173,16 +173,6 @@ event_actions('post-restore-config', qw(
 ));
 
 #
-# FIXME: create default user and group accounts in runlevel-adjust, to
-# be sure that the system is consistent, daemons are running and ready
-# to initialize accounts.
-#
-event_actions('runlevel-adjust', qw(
-    create-default-accounts            95
-));
-
-
-#
 # Event organization-save
 #
 event_actions('organization-save', qw(
