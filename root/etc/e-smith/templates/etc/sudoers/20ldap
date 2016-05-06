@@ -4,6 +4,7 @@
     #
     push @cmnd_alias_httpd_admin, "/usr/bin/cat /var/lib/nethserver/secrets/libuser";
     push @cmnd_alias_httpd_admin, "/usr/libexec/nethserver/ldap-list-users";
+    push @cmnd_alias_httpd_admin, "/usr/libexec/nethserver/ldap-list-groups";
     '';
 }
 

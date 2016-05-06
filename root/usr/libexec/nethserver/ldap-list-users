@@ -22,12 +22,10 @@
 
 use strict;
 use JSON;
-use esmith::db;
 use esmith::ConfigDB;
 use NethServer::Directory;
 
 my $db = esmith::ConfigDB->open_ro() || die("Could not open Config DB");
-my $passwd = esmith::db->open("NethServer::Database::Passwd") || die("Could not open Passwd DB");
 my $nsDirectory = NethServer::Directory->new() || die('Could not access LDAP Directory');
 
 my %users;
@@ -41,9 +39,6 @@ if ($passexpire eq 'yes') {
 }
 my $now = time();
 
-# Check if the user is really unlocked
-tie my %udb, 'NethServer::Database::Passwd';
-
 my @entries = $nsDirectory->search(
     base => 'ou=People,dc=directory,dc=nh',
     filter => '(objectClass=shadowAccount)',
@@ -55,9 +50,11 @@ foreach  my $entry ( @entries ) {
     my $expired = 0;
     my $new = 0;
     my $uid = $entry->get_value('uid');
+    my $name = $entry->get_value('cn');
     my $pass = $entry->get_value('userPassword');
     my $shadowMax = $entry->get_value('shadowMax');
     my $shadowLastChange = $entry->get_value('shadowLastChange');
+    my $shell = $entry->get_value('loginShell');
     if ($pass =~ /\{CRYPT\}\!+/) {
         $locked = 1;
     }
@@ -74,6 +71,8 @@ foreach  my $entry ( @entries ) {
     $users{$uid.'@'.$domain}{'locked'} = $locked;
     $users{$uid.'@'.$domain}{'expired'} = $expired;
     $users{$uid.'@'.$domain}{'new'} = $new;
+    $users{$uid.'@'.$domain}{'gecos'} = $name;
+    $users{$uid.'@'.$domain}{'shell'} = $shell;
 }
 
 print to_json(\%users);
