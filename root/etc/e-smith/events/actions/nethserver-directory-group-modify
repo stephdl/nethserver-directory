@@ -29,7 +29,6 @@ use NethServer::Directory;
 
 my $db = esmith::ConfigDB->open_ro() || die("Could not open Config DB");
 my $ldap = NethServer::Directory->new() || die "Could not connect NethServer LDAP backend";
-my $gdb = esmith::db->open("NethServer::Database::Group") || die("Could not open Group DB");
 
 my $errors = 0;
 my $event = shift || die "Event name argument is missing\n";
@@ -39,14 +38,7 @@ my @members = @ARGV;
 # Handle users with and without domain part
 my $account = undef;
 if ($groupName =~ /@/) {
-    $account = $gdb->get($groupName);
     $groupName = (split(/@/,$groupName))[0];
-} else {
-    my $domain = $db->get_value('DomainName');
-    $account = $gdb->get($groupName.'@'.$domain);
-}
-if( ! $account) {
-    die "[ERROR] Group `$groupName` not found.\n";
 }
 
 if($ldap->modify("cn=$groupName,ou=Groups,dc=directory,dc=nh", replace => [memberUid => \@members])->is_error()) {

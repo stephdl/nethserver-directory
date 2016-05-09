@@ -22,7 +22,6 @@
 #
 
 use strict;
-use NethServer::Database::Passwd;
 use esmith::ConfigDB;
 
 my $event = shift;
@@ -31,7 +30,6 @@ my $name = shift || '';
 my $shell = shift || '/usr/libexec/openssh/sftp-server';
 
 my $db = esmith::ConfigDB->open_ro() || die("Could not open Config DB");
-my $passwd = esmith::db->open("NethServer::Database::Passwd") || die("Could not open Passwd DB");
 my $contactRecord = $db->get('OrganizationContact');
 
 
@@ -48,14 +46,7 @@ if( ! $contactRecord ) {
 # Handle users with and without domain part
 my $account = undef;
 if ($userName =~ /@/) {
-    $account = $passwd->get($userName);
     $userName = (split(/@/,$userName))[0];
-} else {
-    my $domain = $db->get_value('DomainName');
-    $account = $passwd->get($userName.'@'.$domain);
-}
-if( ! $account) {
-    die "[ERROR] Account `$userName` not found.\n";
 }
 
 $name =~ s/^\s+//g;
