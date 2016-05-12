@@ -1,7 +1,5 @@
 <?php
 
-echo $view->header()->setAttribute('template', $T('LDAP_Info'));
-
 echo "<div class='ldap-info'><dl>";
 echo "<dt>".$T('basedn_label')."</dt><dd>{$view['BaseDN']}</dd>";
 echo "<dt>".$T('userdn_label')."</dt><dd>{$view['UserDN']}</dd>";

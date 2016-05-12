@@ -1,7 +1,6 @@
 <?php
 
 $L['LDAP_Title'] = 'LDAP';
-$L['LDAP_Info'] = 'LDAP information';
 $L['basedn_label'] = 'Base DN';
 $L['userdn_label'] = 'User DN';
 $L['groupdn_label'] = 'Group DN';

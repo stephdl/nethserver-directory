@@ -1,6 +1,6 @@
 <?php
 
-namespace NethServer\Module\AuthProvider\Backends;
+namespace NethServer\Module\Sssd;
 
 /*
  * Copyright (C) 2016 Nethesis S.r.l.
@@ -27,7 +27,7 @@ namespace NethServer\Module\AuthProvider\Backends;
  *
  * @author Giacomo Sanchietti<giacomo.sanchietti@nethesis.it>
  */
-class LDAP extends \Nethgui\Controller\AbstractController
+class Ldap extends \Nethgui\Controller\AbstractController
 {
 
     public function prepareView(\Nethgui\View\ViewInterface $view)
@@ -41,7 +41,7 @@ class LDAP extends \Nethgui\Controller\AbstractController
         $view['BindPassword'] = $pass;
         $view['UserDN'] = "ou=People,$base";
         $view['GroupDN'] = "ou=Groups,$base";
-        $view['dump'] = $this->getPlatform()->exec('/bin/ldapsearch -x -h localhost')->getOutput();
+        $view['dump'] = $this->getPlatform()->exec('/bin/ldapsearch -x -h localhost | head -10000')->getOutput();
 
     }
 
