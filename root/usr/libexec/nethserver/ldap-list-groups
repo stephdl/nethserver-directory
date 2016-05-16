@@ -40,7 +40,6 @@ my @entries = $nsDirectory->search(
 
 foreach  my $entry ( @entries ) {
     my $name = $entry->get_value('cn');
-    next if ($name =~ /locals/);
     my @members = map { $_.'@'.$domain } $entry->get_value('memberUid');
 
     $groups{$name.'@'.$domain}{'members'} = \@members;
