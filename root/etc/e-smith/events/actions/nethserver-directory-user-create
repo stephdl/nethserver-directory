@@ -67,6 +67,7 @@ system(
 	"/usr/sbin/luseradd",
         '-g', 'locals',
         '-n',
+        '--surname', $userName,
 	'-d', $homeDirPrefix . $userName,
 	"-k", "/etc/skel/",
 	"-s", $shell,
@@ -78,5 +79,11 @@ system(
 
 # Set initial permissions on user's root directory.
 chmod 0700, $homeDirPrefix . $userName;
+
+my $ldap = NethServer::Directory->new();
+my $domain = $conf->get_value('DomainName');
+if($ldap->modify("uid=$userName,ou=People,dc=directory,dc=nh", replace => [mail => ($userName.'@'.$domain)])->is_error()) {
+    warn "[ERROR] failed to set mail field for user '$userName'\n";
+}
 
 exit ($errors == 0 ? 0 : 1);
