@@ -10,7 +10,6 @@ URL: %{url_prefix}/%{name}
 Requires: nss-pam-ldapd
 Requires: openldap-clients, openldap-servers
 Requires: perl-LDAP
-Requires: perl-Crypt-Cracklib
 Requires: nethserver-sssd
 
 BuildRequires: nethserver-devtools
