@@ -1,25 +1,25 @@
 [main]
 host = https://www.transifex.com
 
-[nethserver.Group]
+[nethserver-v6.Group]
 source_file = root/usr/share/nethesis/NethServer/Language/en/NethServer_Module_Group.php
 source_lang = en
 type = PHP_ALT_ARRAY
 
 
-[nethserver.User]
+[nethserver-v6.User]
 source_file = root/usr/share/nethesis/NethServer/Language/en/NethServer_Module_User.php
 source_lang = en
 type = PHP_ALT_ARRAY
 
 
-[nethserver.Dashboard_SystemStatus_Accounts]
+[nethserver-v6.Dashboard_SystemStatus_Accounts]
 source_file = root/usr/share/nethesis/NethServer/Language/en/NethServer_Module_Dashboard_SystemStatus_Accounts.php
 source_lang = en
 type = PHP_ALT_ARRAY
 
 
-[nethserver.nethserver-directorypot]
+[nethserver-v6.nethserver-directorypot]
 source_file = locale/nethserver-directory.pot
 source_lang = en
 type = PO
