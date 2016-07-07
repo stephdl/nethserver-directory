@@ -1,6 +1,6 @@
 Name: nethserver-directory
 Summary: LDAP backend for user and group accounts
-Version: 2.3.0
+Version: 3.0.0
 Release: 1%{?dist}
 License: GPL
 Source0: %{name}-%{version}.tar.gz
@@ -45,6 +45,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jul 07 2016 Stefano Fancello <stefano.fancello@nethesis.it> - 3.0.0-1
+- First NS7 release
+
 * Thu Sep 24 2015 Davide Principi <davide.principi@nethesis.it> - 2.3.0-1
 - Obsolete nethserver-password by merging it into nethserver-directory - Enhancement #3260 [NethServer]
 
