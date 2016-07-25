@@ -38,14 +38,13 @@ event_templates('nethserver-directory-update', qw(
     /etc/openldap/ldap.conf
     /etc/libuser.conf
     /etc/sudoers
-    /etc/sssd/sssd.conf
 ), @certificates);
 
 event_actions('nethserver-directory-update', qw(
 	      initialize-default-databases               00
 	      nethserver-directory-conf                  10
 	      nethserver-directory-dit-setup             11
-	      nethserver-sssd-conf                       20
+	      nethserver-directory-sssd                  20
 	      nethserver-directory-password-policy       50
 ));
 

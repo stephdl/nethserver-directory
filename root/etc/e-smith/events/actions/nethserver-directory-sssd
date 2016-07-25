@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Check if SSSD is already configured for OpenLDAP
+authconfig --enablesssdauth --enablemkhomedir --test | grep -q "dc=neth,dc=eu"
+
+if [ $? -gt 0]; then # first install
+    authconfig --enablesssdauth --enablemkhomedir --update
+    exec /sbin/e-smith/signal-event nethserver-sssd-save
+fi
