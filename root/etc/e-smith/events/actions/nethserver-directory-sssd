@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Check if SSSD is already configured for OpenLDAP
-authconfig --enablesssdauth --enablemkhomedir --test | grep -q "dc=neth,dc=eu"
+suffix=$(perl -mNethServer::Directory -e "print NethServer::Directory::getDomainSuffix()")
+authconfig --enablesssdauth --enablemkhomedir --test | grep -q $suffix
 
 if [ $? -gt 0 ]; then # first install
     authconfig --enablesssdauth --enablemkhomedir --update
