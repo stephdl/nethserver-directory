@@ -33,6 +33,9 @@ my $userName = shift;
 if( ! $userName ) {
     warn("[ERROR] Missing username argument");
     exit(1);
+} elsif ( $userName !~ /\@/ ) {
+    warn("[WARN] Skipping user $userName, it doesn't belong to a domain.\n");
+    exit(0);
 }
 
 my $db = esmith::ConfigDB->open_ro() || die("Could not open Config DB");
