@@ -84,8 +84,8 @@ $ldap->configServiceAccount('libuser') || $errors++;
 $ldap->configServiceAccount('pam') || $errors++;
 $ldap->configServiceAccount('ldapservice') || $errors++;
 
-# Configure default ACLs in a backward-compatible manner:
-foreach ( reverse
+# Configure default ACLs in a unique block:
+foreach ( join ' ',
     qq(by dn.exact="cn=pam,$LdapInternalSuffix" peername.path="/var/run/ldapi" write),
     qq(by dn.exact="cn=libuser,$LdapInternalSuffix" peername.ip="127.0.0.1" write),
     qq(by dn.exact="cn=ldapservice,$LdapInternalSuffix" read),
@@ -98,7 +98,7 @@ foreach ( reverse
 }
 
 # Access to userPassword attribute is subject to stronger restrictions:
-foreach ( reverse
+foreach ( join ' ',
     qq(by dn.exact="cn=pam,$LdapInternalSuffix" peername.path="/var/run/ldapi" write),
     qq(by dn.exact="cn=libuser,$LdapInternalSuffix" peername.ip="127.0.0.1" write),
     qq(by anonymous peername.ip="127.0.0.1" auth),
