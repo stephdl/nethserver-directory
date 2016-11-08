@@ -1,3 +1,5 @@
 #!/bin/bash
+chmod -f 0640 /var/lib/nethserver/backup/ldap-{config,data}.ldif || umask 0027
 /usr/sbin/slapcat -n 0 -l /var/lib/nethserver/backup/ldap-config.ldif &>/dev/null
 /usr/sbin/slapcat -n 2 -l /var/lib/nethserver/backup/ldap-data.ldif &>/dev/null
+chown root:ldap /var/lib/nethserver/backup/ldap-{config,data}.ldif
