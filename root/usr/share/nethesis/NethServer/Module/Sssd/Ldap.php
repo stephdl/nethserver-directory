@@ -34,10 +34,10 @@ class Ldap extends \Nethgui\Controller\AbstractController
     {
         parent::prepareView($view);
 
-        $pass = $this->getPlatform()->exec('sudo cat /var/lib/nethserver/secrets/libuser')->getOutput(); 
+        $pass = $this->getPlatform()->exec('sudo cat /var/lib/nethserver/secrets/ldapservice')->getOutput();
         $base = "dc=directory,dc=nh";
         $view['BaseDN'] = $base;
-        $view['BindDN'] = "cn=libuser,$base";
+        $view['BindDN'] = "cn=ldapservice,$base";
         $view['BindPassword'] = $pass;
         $view['UserDN'] = "ou=People,$base";
         $view['GroupDN'] = "ou=Groups,$base";
