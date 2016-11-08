@@ -77,38 +77,36 @@ foreach(@entries) {
 }
 
 #
-# Create pam and libuser internal accounts (ACL permissions are
+# Create pam, libuser, ldapservice internal accounts (ACL permissions are
 # configured below).
 #
 $ldap->configServiceAccount('libuser') || $errors++;
 $ldap->configServiceAccount('pam') || $errors++;
+$ldap->configServiceAccount('ldapservice') || $errors++;
 
-#
-# Configure default ACLs:
-#
-$ldap->enforceAccessDirective(
-    join(' ',
-	 qq(by dn.exact="cn=pam,$LdapInternalSuffix" peername.path="/var/run/ldapi" write),
-	 qq(by dn.exact="cn=libuser,$LdapInternalSuffix" peername.ip="127.0.0.1" write),
-	 qq(by users ssf=71 read),
-         qq(by anonymous read), # Enable SSSD enumerate
-	 qq(by * none)),
-    '*'
-    ) || $errors++;
+# Configure default ACLs in a backward-compatible manner:
+foreach ( reverse
+    qq(by dn.exact="cn=pam,$LdapInternalSuffix" peername.path="/var/run/ldapi" write),
+    qq(by dn.exact="cn=libuser,$LdapInternalSuffix" peername.ip="127.0.0.1" write),
+    qq(by users ssf=71 read),
+    qq(by anonymous read), # Enable SSSD enumerate
+    qq(by * none),
+) {
+    $ldap->enforceAccessDirective($_, '*') || $errors++;
+}
 
-$ldap->enforceAccessDirective(
-    join(' ',    
-	 qq(by dn.exact="cn=pam,$LdapInternalSuffix" peername.path="/var/run/ldapi" write),
-	 qq(by dn.exact="cn=libuser,$LdapInternalSuffix" peername.ip="127.0.0.1" write),
-	 qq(by anonymous auth),
-	 qq(by self write),
-	 qq(by * none)), 
-    'userPassword'
-    ) || $errors++;
+# Access to userPassword attribute is subject to stronger restrictions:
+foreach ( reverse
+    qq(by dn.exact="cn=pam,$LdapInternalSuffix" peername.path="/var/run/ldapi" write),
+    qq(by dn.exact="cn=libuser,$LdapInternalSuffix" peername.ip="127.0.0.1" write),
+    qq(by anonymous auth),
+    qq(by self write),
+    qq(by * none)
+) {
+    $ldap->enforceAccessDirective($_, 'userPassword') || $errors++;
+}
 
-
-
-exit($errors);
+exit( ($errors > 0) ? 1 : 0 );
 
 
 
