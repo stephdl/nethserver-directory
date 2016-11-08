@@ -88,7 +88,7 @@ $ldap->configServiceAccount('ldapservice') || $errors++;
 foreach ( reverse
     qq(by dn.exact="cn=pam,$LdapInternalSuffix" peername.path="/var/run/ldapi" write),
     qq(by dn.exact="cn=libuser,$LdapInternalSuffix" peername.ip="127.0.0.1" write),
-    qq(by dn.exact="cn=ldapservice,__OLCSUFFIX__" read),
+    qq(by dn.exact="cn=ldapservice,$LdapInternalSuffix" read),
     qq(by users peername.ip="127.0.0.1" read),
     qq(by users ssf=71 read),
     qq(by anonymous read), # Enable SSSD enumerate
