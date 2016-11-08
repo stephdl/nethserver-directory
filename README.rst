@@ -91,7 +91,20 @@ A :index:`service account` is composed by three parts:
 * a password
 * an ACL to access LDAP fields
 
-The developer can user the ``NethServe::Directory`` perl module to handle a service account.
+The following service accounts are configured by the ``nethserver-directory-dit-setup`` action:
+
+* ``cn=pam,dc=directory,dc=nh``. Granted unlimited rw access only from local
+  Unix socket connections.
+
+* ``cn=libuser,dc=directory,dc=nh``. Granted unlimited rw access from
+  localhost/127.0.0.1.
+
+* ``cn=ldapservice,dc=directory,dc=nh``. Granted read only access to
+  non-sensitive attributes, from localhost, or from any other IP address with TLS.
+
+The developer can use the ``NethServe::Directory`` Perl module to handle
+additional service accounts with ad-hoc permissions, if the existing ``ldapservice``
+does not fit his requirements.
 
 Perl code snippet to create a service account with read access: ::
 
@@ -104,9 +117,17 @@ Perl code snippet to use created password: ::
   use NethServer::Password;
   my $pwd = NethServer::Password::store('myservice');
  
+User accounts
+=============
+
+Authenticated binds are granted to TLS protected connections, or connections
+from 127.0.0.1. User DN are in the form: ::
+
+    uid=<username>,ou=People,dc=directory,dc=nh
+
 
 Anonymous access
-----------------
+================
 
 Some LDAP clients and/or legacy environments may require anonymous bind to the LDAP accounts database.
 Currently anonymous access is granted to non-sensitive fields.
