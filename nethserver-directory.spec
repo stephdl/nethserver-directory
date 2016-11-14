@@ -39,6 +39,7 @@ rm -rf %{buildroot}
 %doc scripts/fix_accounts
 %doc scripts/import_users
 %doc scripts/fix_migration_home
+%doc scripts/bats
 %dir %{_nseventsdir}/%{name}-update
 %ghost %attr(644,root,root) /etc/pam.d/password-auth-nh
 %ghost %attr(644,root,root) /etc/pam.d/system-auth-nh
