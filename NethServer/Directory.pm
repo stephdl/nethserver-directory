@@ -78,6 +78,7 @@ sub connect
     return NethServer::Directory::LDAP->new;
 }
 
+# This function is deprecated, use enforceAccessDirective()
 sub addAccessDirective ($$)
 {
     my $directive = shift;
