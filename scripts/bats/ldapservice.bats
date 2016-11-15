@@ -8,10 +8,7 @@
 
 setup ()
 {
-    export DOMAIN_SUFFIX=$(perl -MNethServer::Directory -e 'print NethServer::Directory::getDomainSuffix();')
-    export BUILTIN_SUFFIX="dc=directory,dc=nh"
-    export HOSTNAME=${HOSTNAME:-$(hostname)}
-    export LOCALHOST=127.0.0.1
+    load setup_global
 }
 
 @test "read userPassword field, ldapservice builtin external TLS bind" {

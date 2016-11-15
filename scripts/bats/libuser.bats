@@ -8,10 +8,7 @@
 
 setup ()
 {
-    export DOMAIN_SUFFIX=$(perl -MNethServer::Directory -e 'print NethServer::Directory::getDomainSuffix();')
-    export BUILTIN_SUFFIX="dc=directory,dc=nh"
-    export HOSTNAME=${HOSTNAME:-$(hostname)}
-    export LOCALHOST=127.0.0.1
+    load setup_global
 }
 
 @test "read userPassword field, libuser builtin external TLS bind" {
@@ -50,5 +47,27 @@ setup ()
   [[ $output == *userPassword* ]]
 }
 
+# ------- WRITE PERMISSIONS TESTS -------------
+
+@test "libuser create user libuserunittest" {
+    run luseradd -M libuserunittest
+    [[ $status == 0 ]]
+    id libuserunittest
+}
+
+@test "libuser delete user libuserunittest" {
+    run luserdel libuserunittest
+    [[ $status == 0 ]]
+}
+
+@test "libuser create group libuserunittestg" {
+    run lgroupadd libuserunittestg
+    [[ $status == 0 ]]
+}
+
+@test "libuser delete group libuserunittestg" {
+    run lgroupdel libuserunittestg
+    [[ $status == 0 ]]
+}
 
 
