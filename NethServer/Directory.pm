@@ -211,9 +211,9 @@ sub enforceAccessDirective
     my $domainSuffix = getDomainSuffix();
 
     my $configSearch = $self->search(
-	base => "cn=config",
-	filter => "(&(objectClass=olcDatabaseConfig)(|(olcSuffix=$internalSuffix)(olcSuffix=$domainSuffix)))",
-	sizelimit => 2,
+	base => 'cn=config',
+	filter => 'olcDatabase={-1}frontend',
+	sizelimit => 1,
 	scope => 'one'
 	);
 
@@ -229,7 +229,6 @@ sub enforceAccessDirective
 
     foreach my $configEntry ($configSearch->entries()) {    
 	my @olcAccess = $configEntry->get_value('olcAccess');
-	my $olcSuffix = $configEntry->get_value('olcSuffix');
 	my $currentDirective = $directive;
 	my $currentWhat = $what;
        
@@ -237,10 +236,6 @@ sub enforceAccessDirective
 	foreach(@olcAccess) {
 	    s/^\{\d+\}to /to /;
 	}
-
-	# Replace __OLCSUFFIX__ placeholder with actual value
-	$currentDirective =~ s/__OLCSUFFIX__/$olcSuffix/g;
-	$currentWhat =~ s/__OLCSUFFIX__/$olcSuffix/g;
 
 	if(grep(m/to \Q$currentWhat\E/s, @olcAccess)) {
 	    # Tweak existing $what ACL:

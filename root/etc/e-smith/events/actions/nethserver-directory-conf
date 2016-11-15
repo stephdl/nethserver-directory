@@ -106,7 +106,6 @@ my @configChangeList = (
      'cn=config',
      attrs => [
 	 olcPasswordCryptSaltFormat => '$6$%.86s',
-	 olcTLSCipherSuite => 'HIGH:MEDIUM:+SSLv2',
 	 olcTLSCACertificateFile => $CertificateFile,
 	 olcTLSCertificateFile => $CertificateFile,
 	 olcTLSCertificateKeyFile => $CertificateFile,

@@ -81,29 +81,22 @@ foreach(@entries) {
 # configured below).
 #
 $ldap->configServiceAccount('libuser') || $errors++;
-$ldap->configServiceAccount('pam') || $errors++;
 $ldap->configServiceAccount('ldapservice') || $errors++;
 
 # Configure default ACLs in a unique block:
 foreach ( join ' ',
-    qq(by dn.exact="cn=pam,$LdapInternalSuffix" peername.path="/var/run/ldapi" write),
     qq(by dn.exact="cn=libuser,$LdapInternalSuffix" peername.ip="127.0.0.1" write),
-    qq(by dn.exact="cn=ldapservice,$LdapInternalSuffix" read),
-    qq(by users peername.ip="127.0.0.1" read),
-    qq(by users ssf=71 read),
-    qq(by anonymous read), # Enable SSSD enumerate
-    qq(by * none),
+    qq(by * read)
 ) {
     $ldap->enforceAccessDirective($_, '*') || $errors++;
 }
 
 # Access to userPassword attribute is subject to stronger restrictions:
 foreach ( join ' ',
-    qq(by dn.exact="cn=pam,$LdapInternalSuffix" peername.path="/var/run/ldapi" write),
     qq(by dn.exact="cn=libuser,$LdapInternalSuffix" peername.ip="127.0.0.1" write),
-    qq(by anonymous peername.ip="127.0.0.1" auth),
-    qq(by anonymous ssf=71 auth),
     qq(by self write),
+    qq(by * peername.ip="127.0.0.1" auth),
+    qq(by * ssf=71 auth),
     qq(by * none)
 ) {
     $ldap->enforceAccessDirective($_, 'userPassword') || $errors++;
