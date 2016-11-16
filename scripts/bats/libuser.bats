@@ -11,13 +11,13 @@ setup ()
     load setup_global
 }
 
-@test "read userPassword field, libuser builtin external TLS bind" {
+@test "read userPassword field fail, libuser builtin external TLS bind" {
   run ldapsearch -Z -w $(cat /var/lib/nethserver/secrets/libuser) -D cn=libuser,${BUILTIN_SUFFIX} -b ${BUILTIN_SUFFIX} -h ${HOSTNAME} '(cn=ldapservice)'
   [[ $output == *simpleSecurityObject* ]]
   [[ ! $output == *userPassword* ]]
 }
 
-@test "read userPassword field, libuser domain external TLS bind" {
+@test "read userPassword field fail, libuser domain external TLS bind" {
   run ldapsearch -Z -w $(cat /var/lib/nethserver/secrets/libuser) -D cn=libuser,${DOMAIN_SUFFIX} -b ${DOMAIN_SUFFIX} -h ${HOSTNAME} '(cn=ldapservice)'
   [[ $output == *simpleSecurityObject* ]]
   [[ ! $output == *userPassword* ]]
@@ -46,6 +46,19 @@ setup ()
   [[ $output == *simpleSecurityObject* ]]
   [[ $output == *userPassword* ]]
 }
+
+@test "read userPassword field fail, libuser builtin unix socket bind" {
+  run ldapsearch -w $(cat /var/lib/nethserver/secrets/libuser) -D cn=libuser,${BUILTIN_SUFFIX} -b ${BUILTIN_SUFFIX} -H ldapi:// '(cn=ldapservice)'
+  [[ $output == *simpleSecurityObject* ]]
+  [[ $output != *userPassword* ]]
+}
+
+@test "read userPassword field fail, libuser domain unix socket bind" {
+  run ldapsearch -w $(cat /var/lib/nethserver/secrets/libuser) -D cn=libuser,${DOMAIN_SUFFIX} -b ${DOMAIN_SUFFIX} -H ldapi:// '(cn=ldapservice)'
+  [[ $output == *simpleSecurityObject* ]]
+  [[ $output != *userPassword* ]]
+}
+
 
 # ------- WRITE PERMISSIONS TESTS -------------
 

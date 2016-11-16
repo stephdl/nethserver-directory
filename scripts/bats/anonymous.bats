@@ -35,3 +35,14 @@ setup ()
   [[ ! $output == *userPassword* ]]
 }
 
+@test "read userPassword field, anonymous builtin unix socket bind" {
+  run ldapsearch -w '' -D '' -x -b ${BUILTIN_SUFFIX} -H ldapi://
+  [[ $output == *organizationalUnit* ]]
+  [[ ! $output == *userPassword* ]]
+}
+
+@test "read userPassword field, anonymous domain unix socket bind" {
+  run ldapsearch -w '' -D '' -x -b ${DOMAIN_SUFFIX} -H ldapi://
+  [[ $output == *organizationalUnit* ]]
+  [[ ! $output == *userPassword* ]]
+}

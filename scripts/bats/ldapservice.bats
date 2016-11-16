@@ -48,3 +48,14 @@ setup ()
   [[ ! $output == *userPassword* ]]
 }
 
+@test "read userPassword field, ldapservice builtin unix socket bind" {
+  run ldapsearch -w $(cat /var/lib/nethserver/secrets/ldapservice) -D cn=ldapservice,${BUILTIN_SUFFIX} -b ${BUILTIN_SUFFIX} -H ldapi:// '(!(cn=ldapservice))'
+  [[ $output == *simpleSecurityObject* ]]
+  [[ ! $output == *userPassword* ]]
+}
+
+@test "read userPassword field, ldapservice domain unix socket bind" {
+  run ldapsearch -w $(cat /var/lib/nethserver/secrets/ldapservice) -D cn=ldapservice,${DOMAIN_SUFFIX} -b ${DOMAIN_SUFFIX} -H ldapi:// '(!(cn=ldapservice))'
+  [[ $output == *simpleSecurityObject* ]]
+  [[ ! $output == *userPassword* ]]
+}
