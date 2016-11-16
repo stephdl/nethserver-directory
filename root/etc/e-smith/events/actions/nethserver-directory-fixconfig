@@ -1,0 +1,50 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2016 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+# Revert olcTLSCipherSuite to upstream default:
+if ldapsearch -LLL -Y EXTERNAL -b cn=config -s base '' olcTLSCipherSuite 2>/dev/null | grep -s -F 'olcTLSCipherSuite: HIGH:MEDIUM:+SSLv2' ; then
+    echo "[NOTICE] Cleaning up slapd old TLS cipher suite config"
+    ldapmodify -c -Y EXTERNAL <<EOF
+dn: cn=config
+changetype: modify
+delete: olcTLSCipherSuite
+EOF
+fi
+
+# ACL has been moved to a unique entry, under the frontend DB configuration:
+for DN in \
+    "olcDatabase={2}hdb,cn=config" \
+    "olcDatabase={2}bdb,cn=config" \
+    "olcDatabase={3}relay,cn=config"; do
+    if ! ldapsearch -LLL -Y EXTERNAL -b "$DN" -s base olcAccess 2>/dev/null | \
+        perl -MMIME::Base64 -MEncode=decode -n -00 -e 's/\n +//g;s/(?<=:: )(\S+)/decode("UTF-8",decode_base64($1))/eg;print' | \
+        grep -s -F cn=pam,dc=directory,dc=nh ; then
+        continue
+    fi
+    echo "[NOTICE] Cleaning up slapd olcAccess attribute in $DN"
+    ldapmodify -c -Y EXTERNAL <<EOF
+dn: $DN
+changetype: modify
+delete: olcAccess
+EOF
+done
+

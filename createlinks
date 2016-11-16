@@ -44,6 +44,7 @@ event_actions('nethserver-directory-update', qw(
 	      initialize-default-databases               00
 	      nethserver-directory-conf                  10
 	      nethserver-directory-dit-setup             11
+          nethserver-directory-fixconfig             12
 	      nethserver-directory-sssd                  20
 	      nethserver-directory-password-policy       50
 ));
