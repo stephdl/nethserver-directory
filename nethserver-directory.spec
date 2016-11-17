@@ -7,7 +7,6 @@ Source0: %{name}-%{version}.tar.gz
 BuildArch: noarch
 URL: %{url_prefix}/%{name} 
 
-Requires: nss-pam-ldapd
 Requires: openldap-clients, openldap-servers
 Requires: perl-LDAP
 Requires: nethserver-sssd

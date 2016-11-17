@@ -57,7 +57,6 @@ if( ! $ldap) {
    die("Cannot connect LDAP server");
 }
 
-my $NslcdUid = getpwnam('nslcd');
 my $LdapInternalSuffix = NethServer::Directory::getInternalSuffix(); 
 my $LdapDomainSuffix = NethServer::Directory::getDomainSuffix(); 
 my $errors = 0;
@@ -107,7 +106,6 @@ my @configChangeList = (
      'cn=config',
      attrs => [
 	 olcPasswordCryptSaltFormat => '$6$%.86s',
-	 olcTLSCipherSuite => 'HIGH:MEDIUM:+SSLv2',
 	 olcTLSCACertificateFile => $CertificateFile,
 	 olcTLSCertificateFile => $CertificateFile,
 	 olcTLSCertificateKeyFile => $CertificateFile,
