@@ -47,6 +47,7 @@ event_actions('nethserver-directory-update', qw(
           nethserver-directory-fixconfig             12
 	      nethserver-directory-sssd                  20
 	      nethserver-directory-password-policy       50
+	      nethserver-directory-createadmins          60
 ));
 
 event_services('nethserver-directory-update', qw(

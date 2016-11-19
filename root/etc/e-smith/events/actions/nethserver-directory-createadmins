@@ -1,0 +1,40 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2016 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+if ldapsearch -LLL -Y EXTERNAL '(|(objectClass=posixAccount)(objectClass=posixGroup))' dn 2>/dev/null | grep -q "^dn:" ; then
+    # don't modify the LDAP tree if any account already exist
+    exit 0
+fi
+
+echo "[NOTICE] creating administrative account"
+
+EVENT=$1
+USER=$(config getprop admins user)
+GROUP=$(config getprop admins group)
+ERRORS=0
+
+/etc/e-smith/events/actions/nethserver-directory-user-create "$EVENT" "$USER" "$USER" "" || (( ERRORS ++ ))
+/etc/e-smith/events/actions/nethserver-directory-group-create "$EVENT" "$GROUP" "$USER" || (( ERRORS ++ ))
+/etc/e-smith/events/actions/nethserver-directory-group-modify "$EVENT" "$GROUP" "$USER" || (( ERRORS ++ ))
+
+exit $ERRORS
+
