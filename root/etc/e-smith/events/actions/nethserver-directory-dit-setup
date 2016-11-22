@@ -22,7 +22,6 @@
 use strict;
 use NethServer::Directory;
 use esmith::ConfigDB;
-use User::grent;
 
 my $ldap = NethServer::Directory->new or die("No LDAP connection");
 my $configDb = esmith::ConfigDB->open_ro() || die('Could not open ConfigDB');
@@ -38,8 +37,6 @@ $ldap->loadLdifSchema('inetorgperson', '/etc/openldap/schema/inetorgperson.ldif'
 # DIT (Directory Information Tree) setup 
 #
 my %OrganizationContact = $configDb->get('OrganizationContact')->props or {'Company' => 'Not Set'};
-
-my $localsId = getUserNameId('locals', 1001);
 
 my @entries = (
     [ $LdapInternalSuffix,
@@ -58,13 +55,6 @@ my @entries = (
 	  objectClass => ['top', 'organizationalUnit'],
 	  ou => 'Groups',
       ] ],
-    [ 'cn=locals,ou=Groups,' . $LdapInternalSuffix,
-      attrs => [
-	  gidNumber => $localsId,	  
-	  qw(
-	    objectClass posixGroup
-	    cn locals
-    )] ],
     );
 
 
@@ -104,17 +94,3 @@ foreach ( join ' ',
 
 exit( ($errors > 0) ? 1 : 0 );
 
-
-
-sub getUserNameId()
-{
-    my $userName = shift;
-    my $startId = shift;
-    my $entry = $ldap->getUser($userName);
-
-    if( ! $entry ) {
-	return $ldap->getFreeId($startId);
-    }
-
-    return $entry->get_value('uidNumber');
-}
