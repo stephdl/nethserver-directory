@@ -36,5 +36,14 @@ ERRORS=0
 /etc/e-smith/events/actions/nethserver-directory-group-create "$EVENT" "$GROUP" "$USER" || (( ERRORS ++ ))
 /etc/e-smith/events/actions/nethserver-directory-group-modify "$EVENT" "$GROUP" "$USER" || (( ERRORS ++ ))
 
+ldapmodify -Y EXTERNAL <<EOF
+dn: olcDatabase={2}hdb,cn=config
+changetype: modify
+replace: olcRootDN
+olcRootDN: uid=${USER},ou=People,dc=directory,dc=nh
+EOF
+
+[[ $? == 0 ]] || (( ERRORS ++ ))
+
 exit $ERRORS
 
