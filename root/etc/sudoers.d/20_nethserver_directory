@@ -1,0 +1,7 @@
+#
+# 20_nethserver_directory
+#
+%adm ALL=NOPASSWD: \
+    /usr/bin/cat /var/lib/nethserver/secrets/ldapservice, \
+    /usr/libexec/nethserver/ldap-list-users, \
+    /usr/libexec/nethserver/ldap-list-groups

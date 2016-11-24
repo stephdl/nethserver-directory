@@ -30,9 +30,12 @@ perl createlinks
 %install
 rm -rf %{buildroot}
 (cd root   ; find . -depth -not -name '*.orig' -print  | cpio -dump %{buildroot})
-%{genfilelist} %{buildroot} > %{name}-%{version}-%{release}-filelist
+%{genfilelist} %{buildroot} | \
+  sed '\:^/etc/nethserver/todos.d/: d
+\:^/etc/sudoers.d/: d
+' > %{name}-%{version}-filelist
 
-%files -f %{name}-%{version}-%{release}-filelist
+%files -f %{name}-%{version}-filelist
 %defattr(-,root,root)
 %doc COPYING
 %doc scripts/fix_accounts
@@ -42,7 +45,7 @@ rm -rf %{buildroot}
 %dir %{_nseventsdir}/%{name}-update
 %ghost %attr(644,root,root) /etc/pam.d/password-auth-nh
 %ghost %attr(644,root,root) /etc/pam.d/system-auth-nh
-
+%config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_directory
 
 %changelog
 * Wed Nov 09 2016 Davide Principi <davide.principi@nethesis.it> - 3.1.0-1
