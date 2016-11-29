@@ -38,9 +38,6 @@ rm -rf %{buildroot}
 %files -f %{name}-%{version}-filelist
 %defattr(-,root,root)
 %doc COPYING
-%doc scripts/fix_accounts
-%doc scripts/import_users
-%doc scripts/fix_migration_home
 %doc scripts/bats
 %dir %{_nseventsdir}/%{name}-update
 %ghost %attr(644,root,root) /etc/pam.d/password-auth-nh
