@@ -38,6 +38,7 @@ event_templates('nethserver-directory-update', qw(
     /etc/openldap/ldap.conf
     /etc/libuser.conf
     /etc/sudoers
+    /etc/sysconfig/slapd
 ), @certificates);
 
 event_actions('nethserver-directory-update', qw(
