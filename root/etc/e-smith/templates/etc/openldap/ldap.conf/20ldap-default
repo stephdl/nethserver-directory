@@ -6,5 +6,5 @@
 #
 URI  ldapi://
 BASE { use NethServer::Directory; NethServer::Directory::getInternalSuffix() }
-TLS_REQCERT never
+
 

@@ -1,0 +1,6 @@
+#
+# 20urls
+#
+SLAPD_URLS="ldapi:/// ldap:/// ldaps:///"
+
+
