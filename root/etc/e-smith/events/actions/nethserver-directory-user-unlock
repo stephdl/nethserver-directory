@@ -22,10 +22,6 @@
 
 
 use strict;
-use esmith::db;
-use esmith::ConfigDB;
-use Errno;
-use English;
 
 my $event = shift;
 my $userName = shift;
@@ -34,30 +30,14 @@ if( ! $userName ) {
     warn("[ERROR] Missing username argument");
     exit(1);
 } elsif ( $userName !~ /\@/ ) {
-    warn("[WARN] Skipping user $userName, it doesn't belong to a domain.\n");
+    warn("[WARNING] Skipping user $userName, it doesn't belong to a domain.\n");
     exit(0);
 }
 
-my $db = esmith::ConfigDB->open_ro() || die("Could not open Config DB");
-my $passwd = esmith::db->open("NethServer::Database::Passwd") || die("Could not open Passwd DB");
-
-
-# Handle users with and without domain part
-my $account = undef;
-if ($userName =~ /@/) {
-    $account = $passwd->get($userName);
-    $userName = (split(/@/,$userName))[0];
-} else {
-    my $domain = $db->get_value('DomainName');
-    $account = $passwd->get($userName.'@'.$domain);
-}
-if( ! $account) {
-    die "[ERROR] Account `$userName` not found.\n";
-}
-
+$userName = (split(/@/,$userName))[0];
 
 system("/usr/sbin/lusermod", "-U", $userName) == 0
-        or die "Error running /usr/sbin/lusermod command to lock account $userName";
+        or die "[ERROR] could not unlock account $userName\n";
 
 exit 0;
 
