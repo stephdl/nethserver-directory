@@ -6,5 +6,6 @@ authconfig --enablesssdauth --enablemkhomedir --test | grep -q $suffix
 
 if [ $? -gt 0 ]; then # first install
     authconfig --enablesssdauth --enablemkhomedir --update
+    /sbin/e-smith/config setprop sssd Provider ldap status enabled
     exec /sbin/e-smith/signal-event nethserver-sssd-save
 fi
