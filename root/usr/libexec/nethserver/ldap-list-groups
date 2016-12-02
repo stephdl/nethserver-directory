@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 #
 # Copyright (C) 2016 Nethesis S.r.l.
@@ -20,31 +20,4 @@
 # along with NethServer.  If not, see COPYING.
 #
 
-use strict;
-use JSON;
-use esmith::ConfigDB;
-use NethServer::Directory;
-
-my $db = esmith::ConfigDB->open_ro() || die("Could not open Config DB");
-my $nsDirectory = NethServer::Directory->new() || die('Could not access LDAP Directory');
-
-my %groups;
-
-my $domain = $db->get_value('DomainName');
-
-my @entries = $nsDirectory->search(
-    base => 'ou=Groups,dc=directory,dc=nh',
-    filter => '(objectClass=posixGroup)',
-    scope => 'one',
-)->entries;
-
-foreach  my $entry ( @entries ) {
-    my $name = $entry->get_value('cn');
-    my @members = map { $_.'@'.$domain } $entry->get_value('memberUid');
-
-    $groups{$name.'@'.$domain}{'members'} = \@members;
-}
-
-print to_json(\%groups);
-
-exit 0;
+exec('/usr/libexec/nethserver/list-groups', @ARGV);
