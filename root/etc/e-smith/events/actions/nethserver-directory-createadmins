@@ -28,8 +28,8 @@ fi
 echo "[NOTICE] creating administrative account"
 
 EVENT=$1
-USER=$(config getprop admins user)
-GROUP=$(config getprop admins group)
+USER=$(/sbin/e-smith/config getprop admins user)
+GROUP=$(/sbin/e-smith/config getprop admins group)
 ERRORS=0
 
 /etc/e-smith/events/actions/nethserver-directory-user-create "$EVENT" "$USER" "$USER" "" || (( ERRORS ++ ))
