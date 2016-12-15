@@ -1,6 +1,6 @@
 Name: nethserver-directory
 Summary: LDAP backend for user and group accounts
-Version: 3.1.0
+Version: 3.1.1
 Release: 1%{?dist}
 License: GPL
 Source0: %{name}-%{version}.tar.gz
@@ -45,6 +45,13 @@ rm -rf %{buildroot}
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_directory
 
 %changelog
+* Thu Dec 15 2016 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 3.1.1-1
+- Set the members of administrators group - NethServer/dev#5168
+- Enable LDAPs protocol on Active Directory clients - NethServer/dev#5161
+- Notify changes to NethServer::SSSD clients - NethServer/dev#5164
+- Changing password fails if contains a space - Bug NethServer/dev#5154
+- Default "admins" config DB record - NethServer/dev#5157
+
 * Wed Nov 09 2016 Davide Principi <davide.principi@nethesis.it> - 3.1.0-1
 - LDAP account with read-only privileges - NethServer/dev#5145
 
