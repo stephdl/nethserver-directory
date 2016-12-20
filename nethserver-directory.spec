@@ -1,6 +1,6 @@
 Name: nethserver-directory
 Summary: LDAP backend for user and group accounts
-Version: 3.1.1
+Version: 3.1.2
 Release: 1%{?dist}
 License: GPL
 Source0: %{name}-%{version}.tar.gz
@@ -45,6 +45,9 @@ rm -rf %{buildroot}
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_directory
 
 %changelog
+* Tue Dec 20 2016 Davide Principi <davide.principi@nethesis.it> - 3.1.2-1
+- Fix bad recursive events -- NethServer/nethserver-directory#20
+
 * Thu Dec 15 2016 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 3.1.1-1
 - Set the members of administrators group - NethServer/dev#5168
 - Enable LDAPs protocol on Active Directory clients - NethServer/dev#5161
