@@ -1,23 +1,23 @@
 #!/usr/bin/perl
 
 #
-# Copyright (C) 2013 Nethesis S.r.l.
-# http://www.nethesis.it - support@nethesis.it
-# 
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
 # This script is part of NethServer.
-# 
+#
 # NethServer is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License,
 # or any later version.
-# 
+#
 # NethServer is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
-# along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
+# along with NethServer.  If not, see COPYING.
 #
 
 use esmith::AccountsDB;
@@ -47,185 +47,80 @@ if( ! -d $sourceDir) {
 
 my $srcAccountsDb = esmith::AccountsDB->open_ro(join('', $sourceDir, $esmithDbDir, '/accounts')) || die("Could not open source accounts database in $sourceDir \n");
 
-my $dstAccountsDb = esmith::AccountsDB->open('accounts') || die("Could not open destination account db\n");
-
-my $contactRecord = (esmith::ConfigDB->open_ro() || die("Could not open ConfiDB\n"))->get('OrganizationContact');
-
-my %OrganizationContact = (
-    'City' => 'Default City', 
-    'Company' => 'Default Company', 
-    'Department' => 'Default Department', 
-    'PhoneNumber' => '', 
-    'Street' => 'Default Street', 
-    $contactRecord ? $contactRecord->props : ()
-    );
-
 my @users = $srcAccountsDb->get_all_by_prop(type=>'user');
 my @groups = $srcAccountsDb->get_all_by_prop(type=>'group');
 my $shadowDb = parseShadow($sourceDir . '/etc/shadow');
 
-# Import these props for user records:
-my @userProps = (qw(
-   FirstName
-   LastName
-   Uid
-));
-
-# Map old user prop to new names:
-my %contactInfoMap = (qw(
-   City City
-   Company Company
-   Dept Department
-   Phone PhoneNumber
-   Street Street
-));
-
-# Import these props for group records:
-my @groupProps = (qw(
-   Gid
-   Uid
-   Description
-   Members
-));
-
-
 #
 # Users migration:
-# 
-foreach my $srcUser (@users) {
+#
+foreach my $srcUser (@users, $srcAccountsDb->get('admin')) {
     my $userName = $srcUser->key;
-
-    # skip an existing user account:
-    if($dstAccountsDb->get($userName)) {
-	warn "[WARNING] User $userName is already registered in accounts DB\n";
-	next;
-    }
-
-    if(getpwnam($userName)) {
-	warn "[WARNING] User $userName exists in passwd DB\n";
-	next;
-    }
-
-    if(getpwuid($srcUser->prop('Uid'))) {
-	warn "[WARNING] UID " . $srcUser->prop('Uid') . " exists in passwd DB\n";
-	next;
-    }
-
-    #
-    # copy @userProps to a new record in dstAccountDb:
-    #
-    foreach (@userProps) {
-	$dstAccountsDb->set_prop($userName, $_, $srcUser->prop($_), type => 'user');
-    }
-
-    #
-    # copy contact info only if differs from defaults defined by
-    # OrganizationContact (#1853)
-    #
-    foreach (keys %contactInfoMap) {
-	my $k = $contactInfoMap{$_};
-       
-	my $v = ($srcUser->prop($_) 
-		 && $srcUser->prop($_) ne ($OrganizationContact{$k})) ? $srcUser->prop($_) : '';	    
-	$dstAccountsDb->set_prop($userName, $k, $v, type => 'user');
-    }
+    my $fullName = join(' ', $srcUser->prop('FirstName'), $srcUser->prop('LastName'));
 
     #
     # USER-CREATE event
     #
-    if( ! esmith::event::event_signal('user-create', $userName)) {
-	warn "[ERROR] user-create event failed for user " . $userName . "\n";
-	$errors ++;
+    if( ! esmith::event::event_signal('user-create', $userName, $fullName)) {
+        warn "[ERROR] user-create event failed for user " . $userName . "\n";
+        $errors ++;
     }
 
     #
-    # Check passwd DB entry:
+    # Replace userPassword attribute in LDAP, using shadow(3) pwdp field
     #
+    if($shadowDb->{$userName} && $shadowDb->{$userName}->{pwdp}) {
+        open(PH, '|-', '/usr/sbin/lpasswd -f 0 ' . $userName . ' >/dev/null 2>&1');
+        print PH $shadowDb->{$userName}->{pwdp};
+        if( ! close(PH)) {
+            warn "[ERROR] failed to restore password for user $userName\n";
+            $errors ++;
+        }
+    }
+
     my $userPwEnt = getpwnam($userName);
-    if ( ! $userPwEnt) {
-	warn "[ERROR]: user $userName is missing in passwd DB! User creation failed?\n";
-	$errors ++;
-	next;
-    }
-
-    if($srcUser->prop('PasswordSet') eq 'yes')  {
-
-	#
-	# Set user password to a random value.
-	#
-	my $passwordFile = File::Temp->new(UNLINK => 0);
-	my $randomPassword = `dd if=/dev/urandom bs=16 count=1 2>/dev/null | /usr/bin/base64`;
-	chomp($randomPassword);
-	print $passwordFile $randomPassword;
-	if( ! esmith::event::event_signal('password-modify', $userName, $passwordFile)) {
-	    warn "[ERROR] password-modify event failed for user " . $userName . "\n";
-	    $errors ++;
-	}
-	close($passwordFile);
-
-	#
-	# Replace userPassword attribute in LDAP, using shadow(3) pwdp field
-	#
-	if($shadowDb->{$userName} && $shadowDb->{$userName}->{pwdp}) {
-	    open(PH, '|-', '/usr/sbin/lpasswd -f 0 ' . $userName . ' >/dev/null 2>&1');
-	    print PH $randomPassword . "\n";
-	    print PH $shadowDb->{$userName}->{pwdp};
-	    if( ! close(PH)) {
-		warn "[ERROR] failed to restore password for user $userName\n";
-		$errors ++;
-	    }
-	}
-
-    } else {
-	warn "[INFO] skipped password setting for disabled user $userName\n";
+    
+    if( ! $userPwEnt) {
+        warn "[ERROR] Could not find $userName in Unix user DB\n";
+        $errors ++;
+        next;
     }
 
     #
     # Migrate user's home directory
     #
+    my $srcHomeDir = $sourceDir . '/home/e-smith/files/users/' . $userName;
     my $homeDir = $userPwEnt->dir;
-    if( ! migrateDir($sourceDir . '/home/e-smith/files/users/' . $userName, $homeDir) ) {
-	warn "[ERROR] Could not migrate $userName home directory!\n";
-	$errors ++;
+
+    if( ! -d $srcHomeDir) {
+        warn "[WARNING] The source home directory does not exist, ignoring $srcHomeDir";
+        next;
     }
 
-    
+    if( ! migrateDir($srcHomeDir, $homeDir) ) {
+        warn "[ERROR] Could not migrate $userName home directory!\n";
+        $errors ++;
+    } else {
+        system("chown -r $userName $homeDir");
+        if($? != 0) {
+            warn "[ERROR] Changing home dir ownership failed for $userName\n";
+            $errors ++;
+        }
+    }
+
 }
 
 #
 # Groups migration
 #
 foreach my $srcGroup (@groups) {
-    # skip an existing group account:
-    if($dstAccountsDb->get($srcGroup->key)) {
-	next;
+
+    if( ! esmith::event::event_signal('group-create', $srcGroup->key, split(/,/, $srcGroup->prop('Members')))) {
+        warn "[ERROR] Failed to migrate group " . $srcGroup->key . "\n";
+        $errors ++;
     }
 
-    # copy @groupProps to a new record in dstAccountDb:
-    foreach (@groupProps) {
-	$dstAccountsDb->set_prop($srcGroup->key, $_, $srcGroup->prop($_), type => 'group');
-    }
-
-    if( ! esmith::event::event_signal('group-create', $srcGroup->key)) {
-	warn "[ERROR] Failed to migrate group " . $srcGroup->key . "\n";
-	$errors ++;
-    }
-
-
 }
-
-#
-# admin's data migration:
-#
-my $adminHome = getpwnam('admin')->dir;
-if( ! -d $adminHome) {
-    File::Path::make_path($adminHome, { mode => 0700, user => 'admin', group => 'admin'});
-}
-if( ! migrateDir($sourceDir . '/home/e-smith/files/users/admin', $adminHome)) {
-    warn "[ERROR] admin home dir migration failed\n";
-    $errors++;
-}
-
 
 if($errors > 0) {
     warn "[WARNING] $errors error(s) occurred in $0 action\n";
