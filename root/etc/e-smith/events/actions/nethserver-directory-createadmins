@@ -33,8 +33,18 @@ GROUP=$(/sbin/e-smith/config getprop admins group)
 ERRORS=0
 
 /etc/e-smith/events/actions/nethserver-directory-user-create "$EVENT" "$USER" "$USER" "" || (( ERRORS ++ ))
-/etc/e-smith/events/actions/nethserver-directory-group-create "$EVENT" "$GROUP" "$USER" || (( ERRORS ++ ))
-/etc/e-smith/events/actions/nethserver-directory-group-modify "$EVENT" "$GROUP" "$USER" || (( ERRORS ++ ))
+/etc/e-smith/events/actions/nethserver-directory-group-create "$EVENT" domadmins "$USER" || (( ERRORS ++ ))
+/etc/e-smith/events/actions/nethserver-directory-group-modify "$EVENT" domadmins "$USER" || (( ERRORS ++ ))
+
+if [[ "$GROUP" != "domadmins" ]]; then
+    ldapmodrdn -Y EXTERNAL 'cn=domadmins,ou=Groups,dc=directory,dc=nh' "cn=$GROUP" || (( ERRORS ++ ))
+    ldapmodify -Y EXTERNAL <<EOF
+dn: cn=$GROUP,ou=Groups,dc=directory,dc=nh
+changetype: modify
+replace: cn
+cn: $GROUP
+EOF
+fi
 
 ldapmodify -Y EXTERNAL <<EOF
 dn: olcDatabase={2}hdb,cn=config
