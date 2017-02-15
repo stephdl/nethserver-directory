@@ -28,7 +28,7 @@ use NethServer::Service;
 # Restore backup if present
 #
 if ( ! -f '/var/lib/ldap/cn.bdb' ) { # first configuration
-    if ( -f '/var/lib/nethserver/backup/ldap-config.ldif' ) { # backup is ready to be restored
+    if ( -s '/var/lib/nethserver/backup/ldap-config.ldif' ) { # backup is present and non-zero size
         system('/etc/e-smith/events/actions/nethserver-directory-restore-ldap');
     }
 }
