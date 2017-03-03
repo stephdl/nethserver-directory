@@ -59,11 +59,13 @@ foreach my $srcUser (@users, $srcAccountsDb->get('admin')) {
     my $fullName = join(' ', $srcUser->prop('FirstName'), $srcUser->prop('LastName'));
 
     #
-    # USER-CREATE event
+    # USER-CREATE event; skip for already existing admin user:
     #
-    if( ! esmith::event::event_signal('user-create', $userName, $fullName)) {
-        warn "[ERROR] user-create event failed for user " . $userName . "\n";
-        $errors ++;
+    if($userName ne 'admin') {
+        if( ! esmith::event::event_signal('user-create', $userName, $fullName)) {
+            warn "[ERROR] user-create event failed for user " . $userName . "\n";
+            $errors ++;
+        }
     }
 
     #
