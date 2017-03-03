@@ -101,7 +101,7 @@ foreach my $srcUser (@users, $srcAccountsDb->get('admin')) {
         warn "[ERROR] Could not migrate $userName home directory!\n";
         $errors ++;
     } else {
-        system("chown -r $userName $homeDir");
+        system("chown -R $userName $homeDir");
         if($? != 0) {
             warn "[ERROR] Changing home dir ownership failed for $userName\n";
             $errors ++;
