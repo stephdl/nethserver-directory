@@ -1,6 +1,6 @@
 Name: nethserver-directory
 Summary: LDAP backend for user and group accounts
-Version: 3.1.3
+Version: 3.1.4
 Release: 1%{?dist}
 License: GPL
 Source0: %{name}-%{version}.tar.gz
@@ -45,6 +45,9 @@ rm -rf %{buildroot}
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_directory
 
 %changelog
+* Mon Mar 06 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 3.1.4-1
+- Migration from sme8 - NethServer/dev#5196
+
 * Mon Jan 30 2017 Davide Principi <davide.principi@nethesis.it> - 3.1.3-1
 - Domain admins members are not granted full server-manager access - Bug NethServer/dev#5209
 
