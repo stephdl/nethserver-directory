@@ -1,0 +1,63 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+# Exit on error
+set -e
+
+# Fix samba authorizations:
+perl -MNethServer::Directory -e '$l = NethServer::Directory->new(); exit ($l->enforceAccessDirective("by dn.exact=\"cn=samba,dc=directory,dc=nh\" read", "*") ? 0 : 1);'
+
+# Drop this package
+yum -y --disableplugin=nethserver_events remove nethserver-directory
+
+# Clean up DB, like it has never been installed
+/sbin/e-smith/config delete slapd
+
+# Install nethserver-dc without running runlevel-adjust and firewall-adjust:
+# the slapd service must be running and its TCP port must be open
+yum -y --disableplugin=nethserver_events install nethserver-dc
+
+/sbin/e-smith/signal-event nethserver-dc-update
+
+# Pre-select ns6upgrade provisioning procedure
+/sbin/e-smith/config setprop nsdc ProvisionType ns6upgrade
+
+# Safety-check: has the nsdc IP been set?
+if [[ -z $(/sbin/e-smith/config getprop nsdc IpAddress) ]]; then
+    echo "[ERROR] nsdc IpAddress was not set. Cannot start nsdc container."
+    exit 1
+fi
+
+/sbin/e-smith/signal-event nethserver-dc-save
+
+#
+# If provisioning is OK, stop slapd and disable it at boot
+#
+
+if systemctl -q is-active slapd; then
+    systemctl stop slapd
+fi
+
+if systemctl -q is-enabled slapd; then
+    systemctl disable slapd
+fi
+
