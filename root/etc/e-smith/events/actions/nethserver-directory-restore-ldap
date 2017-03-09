@@ -1,10 +1,159 @@
 #!/bin/bash
 
-systemctl stop slapd
-/bin/find /var/lib/ldap/ -name \*.bdb -exec rm -f '{}' \;
-rm -rf /etc/openldap/slapd.d/
-mkdir -p /etc/openldap/slapd.d/
-/usr/sbin/slapadd -F /etc/openldap/slapd.d -n 0 -l /var/lib/nethserver/backup/ldap-config.ldif
-chown -R ldap:ldap /etc/openldap/slapd.d
-/bin/su - ldap -s /bin/bash -c "/usr/sbin/slapadd -F /etc/openldap/slapd.d -n 2 -l /var/lib/nethserver/backup/ldap-data.ldif"
+#
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+set -e
+
+config_backup=/var/lib/nethserver/backup/ldap-config.ldif
+data_backup=/var/lib/nethserver/backup/ldap-data.ldif
+
+if systemctl -q is-active slapd; then
+    systemctl stop slapd
+fi
+
+find /var/lib/ldap/ -name '*.bdb' -delete
+rm -rf /etc/openldap/slapd.d/*
+
+if grep -q olcBdbConfig ${config_backup}; then
+    # Fix ns6 LDAP: upgrade bdb to new default, hdb
+    sed -r -i -f - ${config_backup} <<'EOF'
+/^dn: olcDatabase=\{2\}bdb,cn=config$/ s/bdb/hdb/
+/^olcDatabase: \{2\}bdb$/ s/bdb/hdb/
+/^objectClass: olcBdbConfig$/ s/olcBdbConfig/olcHdbConfig/
+/^structuralObjectClass: olcBdbConfig$/ s/olcBdbConfig/olcHdbConfig/
+EOF
+
+    # Ensure back_relay module is loaded:
+    if ! grep -q -F back_relay.la ${config_backup}; then
+        sed -r -i -f - ${config_backup} <<'EOF'
+/^dn: cn=schema,cn=config$/i\
+dn: cn=module,cn=config\
+objectClass: olcModuleList\
+cn: module\
+olcModuleLoad: {0}back_relay.la\
+structuralObjectClass: olcModuleList\
+
+EOF
+    fi
+
+    ns6upgrade=1
+fi
+
+cat ${config_backup} | runuser -u ldap -g ldap /usr/sbin/slapadd -- -F /etc/openldap/slapd.d -n 0
+cat ${data_backup}   | runuser -u ldap -g ldap /usr/sbin/slapadd -- -F /etc/openldap/slapd.d -n 2
+
 systemctl start slapd
+
+#
+# Wait for LDAP service to start
+#
+attempt=0
+while ! ldapwhoami -Y EXTERNAL; do
+    if (( attempt > 10 )); then
+        echo "[ERROR] failed to connect LDAP server"
+        exit 1
+    fi
+    (( attempt ++ ))
+    sleep 1
+done
+
+if [[ -z "${ns6upgrade}" ]]; then
+    exit 0;
+fi
+
+
+#
+# Upgrade ns6 LDAP DB
+#
+echo "[NOTICE] upgrade ns6 LDAP tree"
+
+# Reset ACLs
+ldapmodify -Y EXTERNAL <<'EOF'
+dn: olcDatabase={0}config,cn=config
+changetype: modify
+replace: olcAccess
+olcAccess: {0}to * by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=extern
+ al,cn=auth" manage by * none
+
+dn: olcDatabase={1}monitor,cn=config
+changetype: modify
+replace: olcAccess
+olcAccess: {0}to * by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=extern
+ al,cn=auth" read by dn.base="cn=Manager,dc=my-domain,dc=com" read by * none
+
+dn: olcDatabase={2}hdb,cn=config
+changetype: modify
+delete: olcAccess
+-
+replace: olcRootDN
+olcRootDN: uid=admin,ou=People,dc=directory,dc=nh
+
+dn: olcDatabase={3}relay,cn=config
+changetype: modify
+delete: olcAccess
+
+EOF
+
+/sbin/e-smith/config setprop admins user admin group domadmins
+
+#
+# This perl script removes primary groups from users and set "locals" as primary
+# group for everyone. It removes fake user accounts that are named as real groups.
+#
+perl <<'PERL'
+use strict;
+use NethServer::Directory;
+use esmith::AccountsDB;
+
+my $adb = esmith::AccountsDB->open() || die ("Could not open AccountsDB");
+my $ldap = NethServer::Directory->new() || die ("Could not contact LDAP server");
+
+$ldap->enforceAccessDirective('', '*');
+$ldap->enforceAccessDirective('', 'userPassword');
+
+my $localsGid = 100;
+my $localsEntry = $ldap->search(
+    'base' => 'cn=locals,ou=Groups,dc=directory,dc=nh',
+    'scope' => 'base',
+    'filter' => 'objectClass=posixGroup'
+)->pop_entry();
+if($localsEntry) {
+    $localsGid = $localsEntry->get_value('gidNumber') || 100;
+    $ldap->modify('cn=locals,ou=Groups,dc=directory,dc=nh', 'replace' => {'memberUid' => []});
+}
+
+foreach (map {$_->key } $adb->users()) {
+    $ldap->delete("cn=$_,ou=Groups,dc=directory,dc=nh");
+    $ldap->modify("uid=$_,ou=People,dc=directory,dc=nh", 'replace' => {'gidNumber' => $localsGid });
+}
+
+my $groupSearch = $ldap->search(
+    'base' => 'ou=Groups,dc=directory,dc=nh',
+    'scope' => 'sub',
+    'filter' => 'objectClass=posixGroup'
+);
+my $groupEntry;
+while($groupEntry = $groupSearch->pop_entry()) {
+    $ldap->delete(sprintf("uid=%s,ou=People,dc=directory,dc=nh", $groupEntry->get_value('cn')));
+}
+
+PERL
+
