@@ -173,6 +173,7 @@ event_actions('pre-backup-config', qw(
 #
 event_actions('post-restore-config', qw(
     nethserver-directory-restore-ldap   20
+    nethserver-directory-clean-accountsdb 65
 ));
 
 #
