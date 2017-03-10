@@ -39,6 +39,10 @@ yum -y --disableplugin=nethserver_events remove nethserver-directory
 
 # Clean up DB, like it has never been installed
 /sbin/e-smith/config delete slapd
+/sbin/e-smith/config setprop sssd LdapURI '' Provider none status disabled
+
+# Clean up sssd configuration
+/sbin/e-smith/signal-event nethserver-sssd-leave
 
 # Install nethserver-dc without running runlevel-adjust and firewall-adjust:
 # the slapd service must be running and its TCP port must be open
