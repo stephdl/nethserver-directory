@@ -25,7 +25,11 @@ set -e
 
 function cleanup_acl ()
 {
-    ldapmodify -Y EXTERNAL <<'EOF'
+    # Clean up temporary props on nsdc service record:
+    /sbin/e-smith/config delprop nsdc TCPPort access
+
+    # Remove read access to everyone:
+    ldapmodify -Y EXTERNAL -H ldapi:/// <<'EOF'
 dn: olcDatabase={-1}frontend,cn=config
 changetype: modify
 replace: olcAccess
@@ -33,6 +37,12 @@ olcAccess: {0}to * by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=extern
  al,cn=auth" manage by * none
 EOF
 }
+
+# Safety-check: has the nsdc IP been set?
+if [[ -z $(/sbin/e-smith/config getprop nsdc IpAddress) ]]; then
+    echo "[ERROR] nsdc IpAddress was not set. Cannot start nsdc container."
+    exit 1
+fi
 
 yum --skip-broken --downloadonly -y --disableplugin=nethserver_events install nethserver-dc
 
@@ -53,15 +63,10 @@ yum -y --disableplugin=nethserver_events install nethserver-dc
 /sbin/e-smith/signal-event nethserver-dc-update
 
 # Pre-select ns6upgrade provisioning procedure
-/sbin/e-smith/config setprop nsdc ProvisionType ns6upgrade status enabled
+/sbin/e-smith/config setprop nsdc ProvisionType ns6upgrade status enabled TCPPort 389 access green
 
-# Safety-check: has the nsdc IP been set?
-if [[ -z $(/sbin/e-smith/config getprop nsdc IpAddress) ]]; then
-    echo "[ERROR] nsdc IpAddress was not set. Cannot start nsdc container."
-    exit 1
-fi
-
-ldapmodify -Y EXTERNAL <<'EOF'
+# Grant read access to everyone (samba-tool provisioning procedure workaround):
+ldapmodify -Y EXTERNAL -H ldapi:/// <<'EOF'
 dn: olcDatabase={-1}frontend,cn=config
 changetype: modify
 replace: olcAccess
@@ -69,9 +74,12 @@ olcAccess: {0}to * by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=extern
  al,cn=auth" manage by * read
 EOF
 
-trap cleanup_acl EXIT
+trap cleanup_acl ERR
 
 /sbin/e-smith/signal-event nethserver-dc-save
+
+# Lock the administrator account
+/etc/e-smith/events/actions/nethserver-dc-user-lock ${1:-ns6upgrade} "administrator@$(hostname -d)"
 
 #
 # If provisioning is OK, stop slapd and disable it at boot
@@ -80,6 +88,8 @@ trap cleanup_acl EXIT
 if systemctl -q is-enabled slapd; then
     systemctl disable slapd
 fi
+
+cleanup_acl
 
 if systemctl -q is-active slapd; then
     systemctl stop slapd
