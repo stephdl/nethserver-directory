@@ -173,6 +173,7 @@ event_actions('pre-backup-config', qw(
 #
 event_actions('post-restore-config', qw(
     nethserver-directory-restore-ldap   20
+    nethserver-directory-clean-accountsdb 65
 ));
 
 #
@@ -180,4 +181,11 @@ event_actions('post-restore-config', qw(
 #
 event_actions('organization-save', qw(
     nethserver-directory-organization-modify 30
+));
+
+#
+# Event nethserver-directory-ns6upgrade
+#
+event_actions('nethserver-directory-ns6upgrade', qw(
+    nethserver-directory-ns6upgrade 30
 ));
