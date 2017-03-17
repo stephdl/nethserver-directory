@@ -157,3 +157,21 @@ while($groupEntry = $groupSearch->pop_entry()) {
 
 PERL
 
+SambaServerRole=$(/sbin/e-smith/config getprop smb ServerRole)
+if [[ "${SambaServerRole}" == 'ADS' ]]; then
+    # Drop this package
+    yum -y --disableplugin=nethserver_events remove nethserver-directory
+
+    # Clean up DB, like it has never been installed
+    /sbin/e-smith/config delete slapd
+
+    # Disable slapd unit
+    if systemctl -q is-enabled slapd; then
+        systemctl disable slapd
+    fi
+
+    # Stop slapd service
+    if systemctl -q is-active slapd; then
+        systemctl stop slapd
+    fi
+fi
