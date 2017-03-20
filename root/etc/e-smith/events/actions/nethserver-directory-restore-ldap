@@ -32,7 +32,7 @@ fi
 find /var/lib/ldap/ -name '*.bdb' -delete
 rm -rf /etc/openldap/slapd.d/*
 
-if grep -q "objectClass: olcBdbConfig" ${config_backup}; then
+if grep -q '^objectClass: olcBdbConfig$' ${config_backup}; then
     # Fix ns6 LDAP: upgrade bdb to new default, hdb
     sed -r -i -f - ${config_backup} <<'EOF'
 /^dn: olcDatabase=\{2\}bdb,cn=config$/ s/bdb/hdb/
