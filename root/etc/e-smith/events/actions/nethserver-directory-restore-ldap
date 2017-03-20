@@ -32,7 +32,7 @@ fi
 find /var/lib/ldap/ -name '*.bdb' -delete
 rm -rf /etc/openldap/slapd.d/*
 
-if grep -q olcBdbConfig ${config_backup}; then
+if grep -q "objectClass: olcBdbConfig" ${config_backup}; then
     # Fix ns6 LDAP: upgrade bdb to new default, hdb
     sed -r -i -f - ${config_backup} <<'EOF'
 /^dn: olcDatabase=\{2\}bdb,cn=config$/ s/bdb/hdb/
@@ -66,7 +66,7 @@ systemctl start slapd
 # Wait for LDAP service to start
 #
 attempt=0
-while ! ldapwhoami -Y EXTERNAL; do
+while ! ldapwhoami -H ldapi:// -Y EXTERNAL; do
     if (( attempt > 10 )); then
         echo "[ERROR] failed to connect LDAP server"
         exit 1
@@ -86,7 +86,7 @@ fi
 echo "[NOTICE] upgrade ns6 LDAP tree"
 
 # Reset ACLs
-ldapmodify -Y EXTERNAL <<'EOF'
+ldapmodify -H ldapi:// -Y EXTERNAL <<'EOF'
 dn: olcDatabase={0}config,cn=config
 changetype: modify
 replace: olcAccess
