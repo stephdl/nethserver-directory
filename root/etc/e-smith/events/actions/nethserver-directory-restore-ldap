@@ -157,7 +157,7 @@ while($groupEntry = $groupSearch->pop_entry()) {
 
 PERL
 
-SambaServerRole=$(/sbin/e-smith/config getprop smb ServerRole)
+SambaServerRole=$(/sbin/e-smith/config getprop smb ServerRole) || :
 if [[ "${SambaServerRole}" == 'ADS' ]]; then
     # Drop this package
     yum -y --disableplugin=nethserver_events remove nethserver-directory
