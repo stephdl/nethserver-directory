@@ -108,6 +108,7 @@ my @configChangeList = (
 	 olcPasswordCryptSaltFormat => '$6$%.86s',
 	 olcTLSCACertificateFile => $CertificateFile,
 	 olcTLSCertificateFile => $CertificateFile,
+	 olcLogLevel => '0',
 	 olcTLSCertificateKeyFile => $CertificateFile,
 	 olcTLSVerifyClient => 'never',
 	 # dummy value, see delete below:
