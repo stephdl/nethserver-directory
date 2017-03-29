@@ -67,6 +67,7 @@ system(
 	"/usr/sbin/luseradd",
         '-g', 'locals',
         '-n',
+        '-M',
         '--surname', $userName,
 	'-d', $homeDirPrefix . $userName,
 	"-k", "/etc/skel/",
@@ -76,9 +77,6 @@ system(
 	$userName
     ) == 0 or die "Failed to create user account `$userName`.\n";
 
-
-# Set initial permissions on user's root directory.
-chmod 0700, $homeDirPrefix . $userName;
 
 my $ldap = NethServer::Directory->new();
 my $domain = $conf->get_value('DomainName');
