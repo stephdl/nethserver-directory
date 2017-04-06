@@ -10,7 +10,7 @@ URL: %{url_prefix}/%{name}
 Requires: coreutils
 Requires: pam_ldap >= 185-5, nss-pam-ldapd >= 0.7.5-3, libuser >= 0.56.13-5
 Requires: openldap, openldap-clients, openldap-servers
-Requires: perl-LDAP = 1:0.40-2.nh
+Requires: perl-LDAP
 Requires: perl-Crypt-Cracklib
 Requires: nethserver-base
 # send expiring password warnings: 
