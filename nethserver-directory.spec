@@ -1,7 +1,7 @@
 Name: nethserver-directory
 Summary: LDAP backend for user and group accounts
-Version: 2.3.0
-Release: 2%{?dist}
+Version: 2.3.1
+Release: 1%{?dist}
 License: GPL
 Source0: %{name}-%{version}.tar.gz
 BuildArch: noarch
@@ -55,6 +55,9 @@ rm -rf $RPM_BUILD_ROOT
 %doc scripts/fix_migration_home
 
 %changelog
+* Fri Apr 07 2017 Davide Principi <davide.principi@nethesis.it> - 2.3.1-1
+- perl-LDAP RPM version error -- Bug #3439 [NethServer]
+
 * Tue Nov 08 2016 Davide Principi <davide.principi@nethesis.it> - 2.3.0-2
 - Fix security issue - Bug Nethesis/dev#5029
 
