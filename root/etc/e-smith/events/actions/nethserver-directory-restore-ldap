@@ -155,6 +155,26 @@ while($groupEntry = $groupSearch->pop_entry()) {
     $ldap->delete(sprintf("uid=%s,ou=People,dc=directory,dc=nh", $groupEntry->get_value('cn')));
 }
 
+for(my $adminUid = 1000; $adminUid < 10000; $adminUid ++) {
+    if(getpwuid($adminUid)) {
+        next;
+    }
+    my $freeSearch = $ldap->search(
+        'base' => 'dc=directory,dc=nh',
+        'scope' => 'sub',
+        'sizelimit' => 1,
+        'filter' => "uidNumber=$adminUid"
+    );
+    if($freeSearch->is_error()) {
+        warn(sprintf("[ERROR] %s\n", $freeSearch->error()));
+        last;
+    } elsif($freeSearch->count() == 0) {
+        $ldap->modify('uid=admin,ou=People,dc=directory,dc=nh', 'replace' => { 'uidNumber' => $adminUid });
+        warn("[NOTICE] applied new admin uidNumber=$adminUid\n");
+        last;
+    }
+}
+
 PERL
 
 SambaServerRole=$(/sbin/e-smith/config getprop smb ServerRole) || :
