@@ -26,7 +26,30 @@ use strict;
 use esmith::AccountsDB;
 
 my $adb = esmith::AccountsDB->open() || die ("Could not open AccountsDB");
+my $domain = `hostname -d`;
+chomp $domain;
 
 foreach ($adb->groups()) {
     $_->delete();
+}
+
+foreach my $user ($adb->users()) {
+    next if ($user->key =~ /@/);
+
+    my $dst_user_key = $user->key."@".$domain;
+    my %props = $user->props;
+    foreach my $key (keys %props) {
+        if (grep(/City|Company|Department|FirstName|LastName|PassExpires|PhoneNumber|Shell|Street|Uid|__state/,$key)) {
+            delete $props{$key};
+        }
+    }
+
+    $user->delete();
+
+    my $account_record = $adb->get($dst_user_key);
+    if (defined($account_record)) {
+        $account_record->merge_props(%props);
+    } else {
+        $adb->new_record($dst_user_key, \%props);
+    }
 }
