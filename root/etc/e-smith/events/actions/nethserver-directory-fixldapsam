@@ -1,0 +1,49 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+# When ns6 LDAP is upgraded to AD, if the original smb/ServerRole was "WS"
+# the domain identifier must be replaced, to avoid clashes with the computer name
+
+Workgroup=$(/sbin/e-smith/config getprop sssd Workgroup)
+ServerRole=$(/sbin/e-smith/config getprop smb ServerRole)
+
+if [[ "${ServerRole}" != "WS" ]]; then
+    exit 0
+fi
+
+cp -f /var/lib/nethserver/db/configuration{,.ns6wg}
+# Read SystemName and DomainName from raw DB file (skip dbus overlay):
+SystemName=$(/sbin/e-smith/db configuration.ns6wg get SystemName | tr '[:lower:]' '[:upper:]')
+rm -f /var/lib/nethserver/db/configuration.ns6wg
+
+# Fix the ldapsam database:
+ldapmodrdn -H ldapi:/// -Y EXTERNAL -v -r "sambaDomainName=${SystemName},dc=directory,dc=nh" "sambaDomainName=${Workgroup}"
+
+# Copy the SID from SystemName to Workgroup in secrets.tdb:
+python - "${SystemName}" "${Workgroup}" << 'EOF'
+import sys
+import tdb
+db = tdb.open("/var/lib/samba/private/secrets.tdb")
+db['SECRETS/SID/%s' % sys.argv[2]] = db['SECRETS/SID/%s' % sys.argv[1]]
+db.close()
+EOF
+
