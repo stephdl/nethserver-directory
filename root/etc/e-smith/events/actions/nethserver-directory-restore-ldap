@@ -20,8 +20,6 @@
 # along with NethServer.  If not, see COPYING.
 #
 
-set -e
-
 config_backup=/var/lib/nethserver/backup/ldap-config.ldif
 data_backup=/var/lib/nethserver/backup/ldap-data.ldif
 
