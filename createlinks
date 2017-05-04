@@ -187,5 +187,6 @@ event_actions('organization-save', qw(
 # Event nethserver-directory-ns6upgrade
 #
 event_actions('nethserver-directory-ns6upgrade', qw(
+    nethserver-directory-fixldapsam 20
     nethserver-directory-ns6upgrade 30
 ));
