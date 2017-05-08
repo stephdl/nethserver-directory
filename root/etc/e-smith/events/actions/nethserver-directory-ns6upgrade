@@ -78,6 +78,30 @@ trap cleanup_acl ERR
 
 /sbin/e-smith/signal-event nethserver-dc-save
 
+# Update UPN fields
+/etc/e-smith/events/actions/nethserver-dc-set-upn
+
+BaseDN=$(perl -MNethServer::SSSD -e 'print NethServer::SSSD->new()->baseDN();')
+LdapUri=ldaps://$(/sbin/e-smith/config getprop nsdc IpAddress)
+KrbRealm=$(/sbin/e-smith/config getprop sssd Realm)
+Domain=$(hostname -d)
+Password='Nethesis,1234'
+# Search for all users without (userPrincipalName already set
+users=$(ldapsearch -D administrator@$KrbRealm -w $Password -H "${LdapUri}" -b $BaseDN '(&(!(objectClass=computer))(!(cn=krbtgt))(!(userPrincipalName=*))(objectClass=user))' cn \
+       | grep "cn:" |  cut -d : -f 2 | sed 's/^\ //g')
+
+# Add missing userPrincipalName attribute (only for upgrade from NS 6)
+for user in $users
+do
+    echo "[NOTICE] Adding UPN to $user"
+    ldapmodify -D administrator@$KrbRealm -w $Password -H "${LdapUri}" <<EOF
+dn: cn=$user,cn=Users,$BaseDN
+changetype: modify
+add: userPrincipalName
+userPrincipalName: $user@$Domain
+EOF
+done
+
 # Lock the administrator account
 /etc/e-smith/events/actions/nethserver-dc-user-lock ${1:-ns6upgrade} "administrator@$(hostname -d)"
 
