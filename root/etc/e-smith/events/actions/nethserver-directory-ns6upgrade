@@ -76,6 +76,9 @@ EOF
 
 trap cleanup_acl ERR
 
+# Make sure LDAP port is open for classic upgrade
+iptables -I INPUT 1 -p tcp --dport 389 -j ACCEPT
+
 /sbin/e-smith/signal-event nethserver-dc-save
 
 # Update UPN fields
@@ -86,6 +89,10 @@ LdapUri=ldaps://$(/sbin/e-smith/config getprop nsdc IpAddress)
 KrbRealm=$(/sbin/e-smith/config getprop sssd Realm)
 Domain=$(hostname -d)
 Password='Nethesis,1234'
+ServerRole=$(/sbin/e-smith/config getprop smb ServerRole)
+LogonDrive=$(/sbin/e-smith/config getprop smb LogonDrive)
+SystemName=$(hostname -s)
+
 # Search for all users without (userPrincipalName already set
 users=$(ldapsearch -D administrator@$KrbRealm -w $Password -H "${LdapUri}" -b $BaseDN '(&(!(objectClass=computer))(!(cn=krbtgt))(!(userPrincipalName=*))(objectClass=user))' cn \
        | grep "cn:" |  cut -d : -f 2 | sed 's/^\ //g')
@@ -100,6 +107,19 @@ changetype: modify
 add: userPrincipalName
 userPrincipalName: $user@$Domain
 EOF
+
+    if [[ "${ServerRole}" == "PDC" ]]; then
+        echo "[NOTICE] Set home drive ${LogonDrive} for $user to \\\\$SystemName\\$user"
+        ldapmodify -D administrator@$KrbRealm -w $Password -H "${LdapUri}" <<EOF
+dn: cn=$user,cn=Users,$BaseDN
+changetype: modify
+replace: homeDrive
+homeDrive: $LogonDrive
+-
+replace: homeDirectory
+homeDirectory: \\\\$SystemName\\$user
+EOF
+    fi
 done
 
 # Lock the administrator account
