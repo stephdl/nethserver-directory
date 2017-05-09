@@ -76,6 +76,9 @@ EOF
 
 trap cleanup_acl ERR
 
+# Make sure LDAP port is open for classic upgrade
+iptables -I INPUT 1 -p tcp --dport 389 -j ACCEPT
+
 /sbin/e-smith/signal-event nethserver-dc-save
 
 # Update UPN fields
