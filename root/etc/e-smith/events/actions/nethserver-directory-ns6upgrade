@@ -114,7 +114,7 @@ replace: homeDrive
 homeDrive: $LogonDrive
 -
 replace: homeDirectory
-homeDirectory: \\$SystemName\$user
+homeDirectory: \\\\$SystemName\\$user
 EOF
     fi
 done
