@@ -99,6 +99,12 @@ foreach my $srcUser (@users, $srcAccountsDb->get('admin')) {
         next;
     }
 
+    if ( ! -d $homeDir) {
+        warn "[NOTICE] Trigger creation of home directory $homeDir\n";
+        # NOTE: see /usr/share/doc/oddjob-mkhomedir-0.31.5/mkhomedirfor
+        system("dbus-send --system --dest=com.redhat.oddjob_mkhomedir --print-reply / com.redhat.oddjob_mkhomedir.mkhomedirfor string:$userName");
+    }
+
     if( ! migrateDir($srcHomeDir, $homeDir) ) {
         warn "[ERROR] Could not migrate $userName home directory!\n";
         $errors ++;
