@@ -79,7 +79,60 @@ trap cleanup_acl ERR
 # Make sure LDAP port is open for classic upgrade
 iptables -I INPUT 1 -p tcp --dport 389 -j ACCEPT
 
+# Fix locked user and missing display names
+perl <<'PERL'
+use Net::LDAP;
+use Authen::SASL;
+use strict;
+
+my $nsDirectory = Net::LDAP->new('ldapi://');
+my $sasl = Authen::SASL->new(mechanism => 'EXTERNAL');
+$nsDirectory->bind(anonymous => 0, sasl => $sasl);
+
+my @updateNodes = $nsDirectory->search(
+    base => 'ou=People,dc=directory,dc=nh',
+    filter => '(&(uid=*)(objectClass=posixAccount)(objectClass=inetOrgPerson))',
+    scope => 'one',
+    )->entries;
+
+foreach(@updateNodes) {
+    my $uid = $_->get_value('uid');
+    my $displayName = $_->get_value('displayName');
+    my $cn = $_->get_value('cn');
+    if (!defined($displayName)) {
+        print "[NOTICE] Adding displayName to user '$uid'\n";
+        $_->add('displayName' => $cn);
+    } elsif ($displayName ne $cn) {
+        print "[NOTICE] Updating displayName for user '$uid'\n";
+        $_->replace('displayName' => $cn);
+    }
+    my $password = $_->get_value('userPassword');
+    my $flags = $_->get_value('sambaAcctFlags') || undef;
+    # user is locked and it's a Samba user
+    if($password =~ /\{CRYPT\}\!+/ && defined($flags) && $flags !~ /D/) {
+        print "[NOTICE] Fixing locking flag for user '$uid'\n";
+        $_->replace('sambaAcctFlags' => "[DU         ]");
+    }
+    # user is not configured for Samba
+    my @objClasses = $_->get_value('objectClass');
+    if ( ! grep { "sambaSamAccount" eq $_ } @objClasses ) {
+        open(my $fh, '>>', '/var/run/lost_users');
+        print $fh "$uid\n";
+        close($fh);
+    }
+    $_->update($nsDirectory);
+}
+PERL
+
 /sbin/e-smith/signal-event nethserver-dc-save
+
+# Re-create users without Samba
+if [ -f /var/run/lost_users ]; then
+    for user in $(cat /var/run/lost_users)
+    do
+        /sbin/e-smith/signal-event user-create $user "Migrated $user"
+    done
+fi
 
 # Update UPN fields
 /etc/e-smith/events/actions/nethserver-dc-set-upn
