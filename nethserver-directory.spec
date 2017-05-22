@@ -1,6 +1,6 @@
 Name: nethserver-directory
 Summary: LDAP backend for user and group accounts
-Version: 3.2.1
+Version: 3.2.2
 Release: 1%{?dist}
 License: GPL
 Source0: %{name}-%{version}.tar.gz
@@ -45,6 +45,9 @@ rm -rf %{buildroot}
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_directory
 
 %changelog
+* Mon May 22 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 3.2.2-1
+- NS 6 upgrade: users not locked - Bug NethServer/dev#5288
+
 * Wed May 10 2017 Davide Principi <davide.principi@nethesis.it> - 3.2.1-1
 - Accounts provider guided configuration - NethServer/dev#5253
 - Upgrade from NS 6 via backup and restore - NethServer/dev#5234
