@@ -52,3 +52,5 @@ Delete
 
 This action removes the defined groups and their
 distribution lists. The shared mailboxes associated
+
+{{{INCLUDE NethServer_Module_Group_PlugService_*.html}}}
