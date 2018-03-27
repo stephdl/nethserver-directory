@@ -36,8 +36,14 @@ if ($userName =~ /@/) {
     $userName = (split(/@/,$userName))[0];
 }
 
-# this also removes user primary group
-my $discard = `/usr/sbin/luserdel -r '$userName'`;
+my $home = (getpwnam($userName))[7];
+
+my $opt = "";
+if ( -d $home ) {
+   # remove home directory if exists
+   $opt = "-r";
+}
+my $discard = `/usr/sbin/luserdel $opt '$userName'`;
 if ($? != 0)
 {
     die "Failed to delete account $userName.\n";
