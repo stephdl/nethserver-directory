@@ -1,6 +1,6 @@
 Name: nethserver-directory
 Summary: LDAP backend for user and group accounts
-Version: 3.2.4
+Version: 3.2.5
 Release: 1%{?dist}
 License: GPL
 Source0: %{name}-%{version}.tar.gz
@@ -45,6 +45,9 @@ rm -rf %{buildroot}
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_directory
 
 %changelog
+* Thu Mar 29 2018 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 3.2.5-1
+- Importing users fails during upgrade from ns6 to AD - Bug NethServer/dev#5443
+
 * Tue Mar 27 2018 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 3.2.4-1
 - Directory: error when removing user without home - Bug NethServer/dev#5444
 
