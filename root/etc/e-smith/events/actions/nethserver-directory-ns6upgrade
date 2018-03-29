@@ -95,8 +95,22 @@ my @updateNodes = $nsDirectory->search(
     scope => 'one',
     )->entries;
 
+my @reservedAccounts = qw(
+    administrator
+    guest
+    krbtgt
+);
+
 foreach(@updateNodes) {
     my $uid = $_->get_value('uid');
+
+    if(grep { lc($uid) eq $_ } @reservedAccounts) {
+        warn "[WARNING] Drop reserved account $uid\n";
+        $_->delete();
+        $_->update($nsDirectory);
+        next;
+    }
+
     my $displayName = $_->get_value('displayName');
     my $cn = $_->get_value('cn');
     if (!defined($displayName)) {
