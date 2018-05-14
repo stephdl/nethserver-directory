@@ -112,7 +112,7 @@ my @configChangeList = (
 	 olcTLSCertificateKeyFile => $CertificateFile,
 	 olcTLSVerifyClient => 'never',
 	 # dummy value, see delete below:
-	 olcTLSCACertificatePath => '/',
+	 olcTLSCACertificatePath => '/etc/openldap/certs',
     ]],
 
     # Refs #1491. Remove attribute, if set.  On CentOS-6.3 nss cert DB
