@@ -176,6 +176,11 @@ event_actions('post-restore-config', qw(
     nethserver-directory-clean-accountsdb 65
 ));
 
+event_templates('post-restore-config', qw(
+    /etc/pki/tls/certs/slapd.pem
+));
+
+
 #
 # Event organization-save
 #
