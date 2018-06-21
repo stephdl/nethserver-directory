@@ -46,6 +46,7 @@ event_actions('nethserver-directory-update', qw(
 	      nethserver-directory-conf                  10
 	      nethserver-directory-dit-setup             11
               nethserver-directory-fixconfig             12
+              nethserver-directory-tlspolicy             20
 	      nethserver-directory-createadmins          50
 	      nethserver-directory-password-policy       60
 	      nethserver-directory-sssd                  90
@@ -194,4 +195,11 @@ event_actions('organization-save', qw(
 event_actions('nethserver-directory-ns6upgrade', qw(
     nethserver-directory-fixldapsam 20
     nethserver-directory-ns6upgrade 30
+));
+
+#
+# tls-policy-save event
+#
+event_actions('tls-policy-save', qw(
+    nethserver-directory-tlspolicy 50
 ));
