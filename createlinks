@@ -137,10 +137,8 @@ event_actions('group-modify', qw(
 # certificate-update event
 #
 event_templates('certificate-update', @certificates);
-
-# Use a specific action to restart slapd and nslcd correctly. See #1722:
-event_actions('certificate-update', qw(
-              nethserver-directory-restart 95        
+event_services('certificate-update', qw(
+    slapd restart
 ));
 
 
@@ -153,11 +151,13 @@ event_actions('migration-import', qw(
 
 
 #
-# hostname-modify event (refs #1010)
+# hostname-modify event
 #
 event_actions('hostname-modify', qw(
     nethserver-directory-conf   20
-    nethserver-directory-restart 21
+));
+event_services('hostname-modify', qw(
+    slapd restart
 ));
 
 #
