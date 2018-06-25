@@ -46,6 +46,7 @@ event_actions('nethserver-directory-update', qw(
 	      nethserver-directory-conf                  10
 	      nethserver-directory-dit-setup             11
               nethserver-directory-fixconfig             12
+              nethserver-directory-tlspolicy             20
 	      nethserver-directory-createadmins          50
 	      nethserver-directory-password-policy       60
 	      nethserver-directory-sssd                  90
@@ -137,10 +138,8 @@ event_actions('group-modify', qw(
 # certificate-update event
 #
 event_templates('certificate-update', @certificates);
-
-# Use a specific action to restart slapd and nslcd correctly. See #1722:
-event_actions('certificate-update', qw(
-              nethserver-directory-restart 95        
+event_services('certificate-update', qw(
+    slapd restart
 ));
 
 
@@ -153,11 +152,13 @@ event_actions('migration-import', qw(
 
 
 #
-# hostname-modify event (refs #1010)
+# hostname-modify event
 #
 event_actions('hostname-modify', qw(
     nethserver-directory-conf   20
-    nethserver-directory-restart 21
+));
+event_services('hostname-modify', qw(
+    slapd restart
 ));
 
 #
@@ -194,4 +195,11 @@ event_actions('organization-save', qw(
 event_actions('nethserver-directory-ns6upgrade', qw(
     nethserver-directory-fixldapsam 20
     nethserver-directory-ns6upgrade 30
+));
+
+#
+# tls-policy-save event
+#
+event_actions('tls-policy-save', qw(
+    nethserver-directory-tlspolicy 50
 ));
