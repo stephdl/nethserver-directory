@@ -1,6 +1,6 @@
 Name: nethserver-directory
 Summary: LDAP backend for user and group accounts
-Version: 3.2.7
+Version: 3.3.0
 Release: 1%{?dist}
 License: GPL
 Source0: %{name}-%{version}.tar.gz
@@ -45,6 +45,9 @@ rm -rf %{buildroot}
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_directory
 
 %changelog
+* Tue Jun 26 2018 Davide Principi <davide.principi@nethesis.it> - 3.3.0-1
+- Allow Elliptic Curve Criptography (ECC) certificate - NethServer/dev#5509
+
 * Wed May 30 2018 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 3.2.7-1
 - Slapd fails to start during restore-config - Bug NethServer/dev#5512
 
