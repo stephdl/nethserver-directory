@@ -44,7 +44,9 @@ if [[ -z $(/sbin/e-smith/config getprop nsdc IpAddress) ]]; then
     exit 1
 fi
 
-yum --skip-broken --downloadonly -y --disableplugin=nethserver_events install nethserver-dc
+if [[ ! -e "${NS6UPGRADE_DCRPM}" ]]; then
+    yum --skip-broken --downloadonly -y --disableplugin=nethserver_events install nethserver-dc
+fi
 
 # Drop this package
 yum -y --disableplugin=nethserver_events remove nethserver-directory
@@ -58,7 +60,11 @@ yum -y --disableplugin=nethserver_events remove nethserver-directory
 
 # Install nethserver-dc without running runlevel-adjust and firewall-adjust:
 # the slapd service must be running and its TCP port must be open
-yum -y --disableplugin=nethserver_events install nethserver-dc
+if [[ -e "${NS6UPGRADE_DCRPM}" ]]; then
+    yum -C -y --disableplugin=nethserver_events install ${NS6UPGRADE_DCRPM}
+else
+    yum -y --disableplugin=nethserver_events install nethserver-dc
+fi
 
 /sbin/e-smith/signal-event nethserver-dc-update
 
