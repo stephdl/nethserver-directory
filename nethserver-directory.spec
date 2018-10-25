@@ -1,6 +1,6 @@
 Name: nethserver-directory
 Summary: LDAP backend for user and group accounts
-Version: 3.3.0
+Version: 3.3.1
 Release: 1%{?dist}
 License: GPL
 Source0: %{name}-%{version}.tar.gz
@@ -45,6 +45,9 @@ rm -rf %{buildroot}
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_directory
 
 %changelog
+* Thu Oct 25 2018 Davide Principi <davide.principi@nethesis.it> - 3.3.1-1
+- Live upgrade procedure - NethServer/dev#5564
+
 * Tue Jun 26 2018 Davide Principi <davide.principi@nethesis.it> - 3.3.0-1
 - Allow Elliptic Curve Criptography (ECC) certificate - NethServer/dev#5509
 
