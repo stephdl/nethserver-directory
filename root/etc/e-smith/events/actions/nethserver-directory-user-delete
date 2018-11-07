@@ -39,7 +39,8 @@ if ($userName =~ /@/) {
 my $home = (getpwnam($userName))[7];
 
 my $opt = "";
-if ( -d $home ) {
+if (( -d $home ) &&
+   (($sysconfig{'KeepUserData'} ||'disabled') eq 'disabled')) {
    # remove home directory if exists
    $opt = "-r";
 }
