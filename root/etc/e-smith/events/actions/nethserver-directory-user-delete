@@ -36,17 +36,6 @@ if ($userName =~ /@/) {
     $userName = (split(/@/,$userName))[0];
 }
 
-my $home = (getpwnam($userName))[7];
-
-my $opt = "";
-if ( -d $home ) {
-   # remove home directory if exists
-   $opt = "-r";
-}
-my $discard = `/usr/sbin/luserdel $opt '$userName'`;
-if ($? != 0)
-{
-    die "Failed to delete account $userName.\n";
-}
-
+system('/usr/sbin/luserdel', $userName) == 0 ||
+    die "Failed to delete account $userName: $!";
 exit (0);
