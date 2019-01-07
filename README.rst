@@ -49,7 +49,7 @@ Account management is done via :index:`libuser` which exports some tools (lusera
 The process of user/group creations is:
 
 * invoke the create event which uses libuser to add the record inside LDAP
-* invoke the group even if the user must be members of additional groups
+* invoke the group event if the user must be member of additional groups
 * invoke the password policy event to change user password expiration
 * invoke the password change event to set a password
 
@@ -68,7 +68,7 @@ But its verbosity can be changed at run time by issuing this command: ::
   olcLogLevel: 256
   EOF
 
-The command above changes the OpenLDAP `config` DB and set the log verbosity to trace "connections/operations/results" (256). 
+The command above changes the OpenLDAP `config` DB and sets the log verbosity to trace "connections/operations/results" (256). 
 Check the debugging levels table from OpenLDAP site for more details: http://www.openldap.org/doc/admin24/slapdconf2.html#olcLogLevel%3A%20%3Clevel%3E.
 
 Service accounts
