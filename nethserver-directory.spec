@@ -1,6 +1,6 @@
 Name: nethserver-directory
 Summary: LDAP backend for user and group accounts
-Version: 3.3.2
+Version: 3.3.3
 Release: 1%{?dist}
 License: GPL
 Source0: %{name}-%{version}.tar.gz
@@ -45,6 +45,9 @@ rm -rf %{buildroot}
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_directory
 
 %changelog
+* Thu Jan 16 2020 Davide Principi <davide.principi@nethesis.it> - 3.3.3-1
+- Shared folders UPN login error after ns6upgrade - Bug NethServer/dev#6020
+
 * Fri Dec 07 2018 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 3.3.2-1
 - Detach user-cleanup event from user-delete - NethServer/dev#5624
 
