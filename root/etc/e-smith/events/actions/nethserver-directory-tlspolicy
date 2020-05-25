@@ -22,7 +22,18 @@
 
 tlspolicy=$(/sbin/e-smith/config getprop tls policy)
 
-if [[ -n ${tlspolicy} ]] && (( $tlspolicy >= 20180621 )); then
+if (( ${tlspolicy:-0} >= 20200510 )); then
+    ldapmodify -c -Y EXTERNAL &>/dev/null <<'EOF' || ((errors ++))
+dn: cn=config
+changetype: modify
+replace: olcTLSCipherSuite
+olcTLSCipherSuite: EECDH:EDH:CAMELLIA:ECDH:RSA:!eNULL:!SSLv2:!RC4:!DES:!EXP:!SEED:!IDEA:!3DES
+-
+replace: olcTLSProtocolMin
+olcTLSProtocolMin: 3.3
+EOF
+
+elif (( ${tlspolicy:-0} >= 20180621 )); then
     ldapmodify -c -Y EXTERNAL &>/dev/null <<'EOF' || ((errors ++))
 dn: cn=config
 changetype: modify
