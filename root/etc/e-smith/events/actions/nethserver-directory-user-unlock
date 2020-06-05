@@ -36,8 +36,17 @@ if( ! $userName ) {
 
 $userName = (split(/@/,$userName))[0];
 
+# Do not unlock users without password
+my $currentPassword = qx(/usr/bin/ldapsearch -o ldif-wrap=no -LLL -Y EXTERNAL '(uid=$userName)' userPassword 2>/dev/null | /usr/bin/grep ^userPassword);
+chomp $currentPassword;
+
+# e0NSWVBUfSEh is base64 form of empty password: {CRYPT}!!
+if ($currentPassword eq 'userPassword:: e0NSWVBUfSEh') {
+    print("[NOTICE] Skipping unlock for user $userName\n");
+    exit(0);
+}
+
 system("/usr/sbin/lusermod", "-U", $userName) == 0
         or die "[ERROR] could not unlock account $userName\n";
 
 exit 0;
-
