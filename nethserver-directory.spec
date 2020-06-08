@@ -1,6 +1,6 @@
 Name: nethserver-directory
 Summary: LDAP backend for user and group accounts
-Version: 3.4.0
+Version: 3.4.1
 Release: 1%{?dist}
 License: GPL
 Source0: %{name}-%{version}.tar.gz
@@ -45,6 +45,9 @@ rm -rf %{buildroot}
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_directory
 
 %changelog
+* Mon Jun 08 2020 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 3.4.1-1
+- OpenLDAP: avoid password limit length fixed to 8 chars - Bug NethServer/dev#6194
+
 * Thu Jun 04 2020 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 3.4.0-1
 - Remove TLS 1.0 and TLS 1.1 - NethServer/dev#6170
 
