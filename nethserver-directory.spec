@@ -10,6 +10,7 @@ URL: %{url_prefix}/%{name}
 Requires: openldap-clients, openldap-servers
 Requires: perl-LDAP
 Requires: nethserver-sssd
+Requires: jq
 
 BuildRequires: nethserver-devtools
 
