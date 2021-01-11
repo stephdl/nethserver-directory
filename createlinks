@@ -48,7 +48,6 @@ event_actions('nethserver-directory-update', qw(
               nethserver-directory-fixconfig             12
               nethserver-directory-tlspolicy             20
 	      nethserver-directory-createadmins          50
-	      nethserver-directory-password-policy       60
 	      nethserver-directory-sssd                  90
 ));
 
@@ -65,6 +64,9 @@ event_actions($_, qw(
 ));
 
 # Update user settings when password policy changes:
+event_templates('password-policy-update', qw(
+    /etc/sssd/sssd.conf
+));
 event_actions('password-policy-update',
 	      'nethserver-directory-password-policy' => '30');
 
