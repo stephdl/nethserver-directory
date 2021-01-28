@@ -1,0 +1,32 @@
+#!/usr/bin/bash
+
+#
+# Copyright (C) 2021 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+if /usr/bin/grep -q '3TGqya1beM2QPhXUPLYCdNrz+dl6qftStqWNc4z7BRl8PeGzun/oDsTosPuXDhCf' /etc/openldap/certs/slapd.dh.params 2>/dev/null;then
+    tmpfile=$(mktemp /tmp/slapd-create-dhparam.XXXXXXX)
+
+    /usr/bin/openssl dhparam -out ${tmpfile} 2048 2> /dev/null || ((errors ++))
+    /usr/bin/mv -f ${tmpfile} /etc/openldap/certs/slapd.dh.params || ((errors ++))
+    /usr/bin/chown root:ldap /etc/openldap/certs/slapd.dh.params &>/dev/null || ((errors ++))
+    /usr/bin/chmod 440 /etc/openldap/certs/slapd.dh.params &>/dev/null || ((errors ++))
+
+exit $errors
+fi
