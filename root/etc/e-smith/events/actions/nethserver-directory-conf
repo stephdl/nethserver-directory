@@ -34,6 +34,13 @@ if ( ! -f '/var/lib/ldap/cn.bdb' ) { # first configuration
 }
 
 #
+# FIXME : slapd is not restarted by the event update, 
+# then systemd configuration for the service 
+# slapd-create-dhparam.service is not reloaded
+#
+system('/usr/bin/systemctl daemon-reload');
+
+#
 # Ensure slapd is running after a full stop/start
 #
 my $slapd = NethServer::Service->new('slapd');
@@ -113,6 +120,7 @@ my @configChangeList = (
 	 olcTLSVerifyClient => 'never',
 	 # dummy value, see delete below:
 	 olcTLSCACertificatePath => '/etc/openldap/certs',
+	 olcTLSDHParamFile => '/etc/openldap/certs/slapd.dh.params',
     ]],
 
     # Refs #1491. Remove attribute, if set.  On CentOS-6.3 nss cert DB
