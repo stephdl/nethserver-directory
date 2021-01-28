@@ -44,6 +44,8 @@ rm -rf %{buildroot}
 %ghost %attr(644,root,root) /etc/pam.d/password-auth-nh
 %ghost %attr(644,root,root) /etc/pam.d/system-auth-nh
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_directory
+%attr (0750,root,root) /usr/libexec/nethserver/slapd-create-dhparam
+%config(noreplace) %attr (0440,root,ldap) /etc/openldap/certs/slapd.dh.params
 
 %changelog
 * Tue Jan 12 2021 Davide Principi <davide.principi@nethesis.it> - 3.4.2-1
@@ -211,5 +213,3 @@ rm -rf %{buildroot}
   Refs #1639 -- LDAP service accounts
 - Configure default certificate management. 
   Refs #1632
-
-
